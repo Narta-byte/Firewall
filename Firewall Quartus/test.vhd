@@ -1,3 +1,1 @@
-entity test is
-
-end entity;
+--this is a test file
