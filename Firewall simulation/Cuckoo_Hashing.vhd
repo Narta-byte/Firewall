@@ -15,10 +15,10 @@ entity Cuckoo_Hashing is
 
     header_in : in std_logic_vector(95 downto 0);
     
-    address : out std_logic(15 downto 0);
+    address : out std_logic(5 downto 0);
     RW : out std_logic;
     hash_out : out std_logic(7 downto 0);
-    SRAM_data : in std_logic;
+    SRAM_data : in std_logic_vector(20 downto 0);
 
     acc_deny_out : out std_logic
   ) ;
@@ -88,10 +88,10 @@ begin
                        when "00" => --flush
                            
                        when "01" => --insert
-                                if data_in(0) = '0' then
-                                    hashtable_1((key_in mod 11)) <= '1';
-
-                                elsif hashtable_2((key_in/11 mod 11)) /= '1' then
+                                if SRAM_data(0) = '0' then
+                                    hash_out <= key_in mod 11;
+                                    data_in <= '1' & (key_in mod 11) & key_in;
+                                elsif SRAM_data(15) = '1' then
                                     
                                     --mabye it should assign something to hashtable_1 here
                                     hashtable_2((key_in/11 mod 11)) <= '1';
