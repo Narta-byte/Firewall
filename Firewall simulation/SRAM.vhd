@@ -22,7 +22,9 @@ architecture SRAM_arch of SRAM is
 begin
   MEMORY : process (clk)
   begin
-    if rising_edge(clk) then
+    if reset = '1' then
+      
+    elsif rising_edge(clk) then
       if WE = '1' then
         RW(to_integer(unsigned(address))) <= data_in;
       else
