@@ -8,21 +8,23 @@ entity SRAM is
     clk : in std_logic;
     reset : in std_logic;
     WE : in std_logic; -- read/write
-    address : in std_logic_vector(7 downto 0);
-    data_in : in std_logic_vector(7 downto 0);
-    data_out : out std_logic_vector(7 downto 0) 
+    address : in std_logic_vector(5 downto 0);
+    data_in : in std_logic_vector(20 downto 0);
+    data_out : out std_logic_vector(20 downto 0) 
   ) ;
 end SRAM ;
 
 architecture SRAM_arch of SRAM is
   
-  type RW_type is array (0 to 10) of std_logic_vector(7 downto 0);
+  type RW_type is array (0 to 32) of std_logic_vector(1+11+8 downto 0); --occupied, hash, key 
   signal RW : RW_type;
 
 begin
   MEMORY : process (clk)
   begin
-    if rising_edge(clk) then
+    if reset = '1' then
+      
+    elsif rising_edge(clk) then
       if WE = '1' then
         RW(to_integer(unsigned(address))) <= data_in;
       else
