@@ -9,7 +9,9 @@ z2
 cModel Technology
 dC:/Users/Asger/OneDrive/Skrivebord/msim_3ugers
 Ecuckoo_hashing
-Z0 w1641285403
+Z0 w1641289335
+DPx4 ieee 15 std_logic_arith 0 22 [G314=:2zXJ`VORJe1J@Z1
+DPx4 ieee 18 std_logic_unsigned 0 22 ;eZjO2D4ZDz<]0>8AL<ne1
 Z1 DPx4 ieee 9 math_real 0 22 Sk6CSihbPL<f[^Shm]=KX0
 Z2 DPx4 ieee 11 numeric_std 0 22 :ASDNFgHXf_ih3J@9F3Ze1
 Z3 DPx3 std 6 textio 0 22 zE1`LPoLg^DX3Oz^4Fj1K3
@@ -19,18 +21,18 @@ Z6 8C:/Users/Asger/3-ugers/Firewall/Firewall simulation/Cuckoo_Hashing.vhd
 Z7 FC:/Users/Asger/3-ugers/Firewall/Firewall simulation/Cuckoo_Hashing.vhd
 l0
 L7
-VoZ`9ZP7i_H[S?TGEf;0WU1
-!s100 Ge`5>E8k=A7zPQCCDZ34B2
+VWHR]bW>@g6E40kEMJiDU@0
+!s100 dF0L`7HoU]2gXCkikZ9V62
 Z8 OV;C;10.4b;61
 32
-Z9 !s110 1641285411
+!s110 1641289346
 !i10b 1
-Z10 !s108 1641285411.000000
-Z11 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|C:/Users/Asger/3-ugers/Firewall/Firewall simulation/Cuckoo_Hashing.vhd|
-Z12 !s107 C:/Users/Asger/3-ugers/Firewall/Firewall simulation/Cuckoo_Hashing.vhd|
+!s108 1641289346.000000
+Z9 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|C:/Users/Asger/3-ugers/Firewall/Firewall simulation/Cuckoo_Hashing.vhd|
+!s107 C:/Users/Asger/3-ugers/Firewall/Firewall simulation/Cuckoo_Hashing.vhd|
 !i113 1
-Z13 o-work work -2002 -explicit
-Z14 tExplicit 1
+Z10 o-work work -2002 -explicit
+Z11 tExplicit 1
 Acuckoo_hashing_tb
 R1
 R2
@@ -43,11 +45,97 @@ VWI18h^;TFglB<kfNSQX580
 !s100 9<oN1B>olML;e>HhFL>A`2
 R8
 32
-R9
+!s110 1641285411
 !i10b 1
+!s108 1641285411.000000
+R9
+!s107 C:/Users/Asger/3-ugers/Firewall/Firewall simulation/Cuckoo_Hashing.vhd|
+!i113 1
 R10
 R11
-R12
+Ecuckoo_hashing_tb
+Z12 w1641282576
+R1
+R2
+R3
+R4
+R5
+Z13 8C:/Users/Asger/3-ugers/Firewall/Firewall simulation/Cuckoo_Hashing_tb.vhd
+Z14 FC:/Users/Asger/3-ugers/Firewall/Firewall simulation/Cuckoo_Hashing_tb.vhd
+l0
+L6
+VUjlfO0Z_@?P=`IKSZG<]V2
+!s100 FA38b<g1j:S?f33zL[e=12
+R8
+32
+Z15 !s110 1641288946
+!i10b 1
+Z16 !s108 1641288946.000000
+Z17 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|C:/Users/Asger/3-ugers/Firewall/Firewall simulation/Cuckoo_Hashing_tb.vhd|
+Z18 !s107 C:/Users/Asger/3-ugers/Firewall/Firewall simulation/Cuckoo_Hashing_tb.vhd|
 !i113 1
-R13
-R14
+R10
+R11
+Acuckoo_hashing_arch
+R1
+R2
+R3
+R4
+DEx4 work 17 cuckoo_hashing_tb 0 22 UjlfO0Z_@?P=`IKSZG<]V2
+l13
+L9
+VhMCoXhiDT@UhU2N;QlfzP2
+!s100 >T4<K5^86hn@@O;?cVcDD0
+R8
+32
+R15
+!i10b 1
+R16
+R17
+R18
+!i113 1
+R10
+R11
+Etest
+Z19 w1641286122
+R1
+R2
+R3
+R4
+R5
+Z20 8C:/Users/Asger/3-ugers/Firewall/Firewall simulation/test.vhd
+Z21 FC:/Users/Asger/3-ugers/Firewall/Firewall simulation/test.vhd
+l0
+L7
+VoZ?83AVVP;APNZ1Ng@2oV1
+!s100 H_iE_LI<WXC2mLF]P;QEH0
+R8
+32
+R15
+!i10b 1
+R16
+Z22 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|C:/Users/Asger/3-ugers/Firewall/Firewall simulation/test.vhd|
+Z23 !s107 C:/Users/Asger/3-ugers/Firewall/Firewall simulation/test.vhd|
+!i113 1
+R10
+R11
+Artl
+R1
+R2
+R3
+R4
+DEx4 work 4 test 0 22 oZ?83AVVP;APNZ1Ng@2oV1
+l18
+L15
+VTJL:792KFNdV>oCk1mAGK2
+!s100 S0da6chKd1:>Ij:n2FmHd1
+R8
+32
+R15
+!i10b 1
+R16
+R22
+R23
+!i113 1
+R10
+R11
