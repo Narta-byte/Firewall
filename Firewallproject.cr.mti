@@ -1,1 +1,31 @@
+{C:/Users/Asger/3-ugers/Firewall/Firewall simulation/test.vhd} {1 {vcom -work work -2002 -explicit -stats=none {C:/Users/Asger/3-ugers/Firewall/Firewall simulation/test.vhd}
+Model Technology ModelSim ALTERA vcom 10.4b Compiler 2015.05 May 27 2015
+-- Loading package STANDARD
+-- Loading package TEXTIO
+-- Loading package std_logic_1164
+-- Loading package NUMERIC_STD
+-- Loading package MATH_REAL
+-- Compiling entity test
+-- Compiling architecture rtl of test
 
+} {} {}} {C:/Users/Asger/3-ugers/Firewall/Firewall simulation/Cuckoo_Hashing.vhd} {0 {vcom -work work -2002 -explicit -stats=none {C:/Users/Asger/3-ugers/Firewall/Firewall simulation/Cuckoo_Hashing.vhd}
+Model Technology ModelSim ALTERA vcom 10.4b Compiler 2015.05 May 27 2015
+-- Loading package STANDARD
+-- Loading package TEXTIO
+-- Loading package std_logic_1164
+-- Loading package NUMERIC_STD
+-- Loading package MATH_REAL
+-- Loading package std_logic_arith
+-- Loading package STD_LOGIC_UNSIGNED
+-- Compiling entity Cuckoo_Hashing
+-- Compiling architecture Cuckoo_Hashing_tb of Cuckoo_Hashing
+** Error: C:/Users/Asger/3-ugers/Firewall/Firewall simulation/Cuckoo_Hashing.vhd(66): Illegal target for signal assignment.
+** Error: C:/Users/Asger/3-ugers/Firewall/Firewall simulation/Cuckoo_Hashing.vhd(66): Target type hash_table0 in signal assignment is different from expression type.
+** Error: C:/Users/Asger/3-ugers/Firewall/Firewall simulation/Cuckoo_Hashing.vhd(66): ** Error: (vcom-1583) Illegal type converson from 'Integer' to 'hash_table0' (numeric to array).
+
+** Error: C:/Users/Asger/3-ugers/Firewall/Firewall simulation/Cuckoo_Hashing.vhd(66): Target of signal assignment is not a signal.
+** Warning: C:/Users/Asger/3-ugers/Firewall/Firewall simulation/Cuckoo_Hashing.vhd(66): (vcom-1272) Length of expected is 11; length of actual is 96.
+
+** Error: C:/Users/Asger/3-ugers/Firewall/Firewall simulation/Cuckoo_Hashing.vhd(80): VHDL Compiler exiting
+
+} {12.0 15.0 16.0 17.0 19.0 20.0} {}}
