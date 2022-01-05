@@ -1,16 +1,4 @@
-{C:/Users/luxen/Firewall/Firewall simulation/Cuckoo_Hashing.vhd} {1 {vcom -work work -2002 -explicit -stats=none {C:/Users/luxen/Firewall/Firewall simulation/Cuckoo_Hashing.vhd}
-Model Technology ModelSim ALTERA vcom 10.4b Compiler 2015.05 May 27 2015
--- Loading package STANDARD
--- Loading package TEXTIO
--- Loading package std_logic_1164
--- Loading package NUMERIC_STD
--- Loading package MATH_REAL
--- Loading package std_logic_arith
--- Loading package STD_LOGIC_UNSIGNED
--- Compiling entity Cuckoo_Hashing
--- Compiling architecture Cuckoo_Hashing_tb of Cuckoo_Hashing
-
-} {} {}} {C:/Users/luxen/Firewall/Firewall simulation/Cuckoo_Hashing_tb.vhd} {0 {vcom -work work -2002 -explicit -stats=none {C:/Users/luxen/Firewall/Firewall simulation/Cuckoo_Hashing_tb.vhd}
+{C:/Users/luxen/Firewall/Firewall simulation/Cuckoo_Hashing_tb.vhd} {0 {vcom -work work -2002 -explicit -stats=none {C:/Users/luxen/Firewall/Firewall simulation/Cuckoo_Hashing_tb.vhd}
 Model Technology ModelSim ALTERA vcom 10.4b Compiler 2015.05 May 27 2015
 -- Loading package STANDARD
 -- Loading package TEXTIO
@@ -31,17 +19,7 @@ Model Technology ModelSim ALTERA vcom 10.4b Compiler 2015.05 May 27 2015
 -- Loading package MATH_REAL
 ** Error: C:/Users/luxen/Firewall/Firewall simulation/Collect_Header.vhd(15): near "EOF": syntax error
 
-} {8.0 9.0} {}} {C:/Users/luxen/Firewall/Firewall simulation/SRAM.vhd} {1 {vcom -work work -2002 -explicit -stats=none {C:/Users/luxen/Firewall/Firewall simulation/SRAM.vhd}
-Model Technology ModelSim ALTERA vcom 10.4b Compiler 2015.05 May 27 2015
--- Loading package STANDARD
--- Loading package TEXTIO
--- Loading package std_logic_1164
--- Loading package NUMERIC_STD
--- Loading package MATH_REAL
--- Compiling entity SRAM
--- Compiling architecture SRAM_arch of SRAM
-
-} {} {}} {C:/Users/luxen/Firewall/Firewall simulation/test.vhd} {1 {vcom -work work -2002 -explicit -stats=none {C:/Users/luxen/Firewall/Firewall simulation/test.vhd}
+} {8.0 9.0} {}} {C:/Users/luxen/Firewall/Firewall simulation/test.vhd} {1 {vcom -work work -2002 -explicit -stats=none {C:/Users/luxen/Firewall/Firewall simulation/test.vhd}
 Model Technology ModelSim ALTERA vcom 10.4b Compiler 2015.05 May 27 2015
 -- Loading package STANDARD
 -- Loading package TEXTIO
