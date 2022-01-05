@@ -11,6 +11,7 @@ entity SRAM is
     address : in std_logic_vector(5 downto 0);
     hash_in : in std_logic_vector(5 downto 0);
     key_in : in std_logic_vector(8 downto 0);
+    occupied_flag_in : in std_logic;
     data_out : out std_logic_vector(20 downto 0) 
   ) ;
 end SRAM ;
