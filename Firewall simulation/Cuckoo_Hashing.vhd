@@ -8,22 +8,42 @@ entity Cuckoo_Hashing is
   port (
     clk : in std_logic;
     reset : in std_logic;
-    rule_flag : in std_logic;
+
+    set_rule : in std_logic;
+    cmd_in : in std_logic_vector(1 downto 0);
+    key_in : in std_logic_vector(95 downto 0);
+
     header_in : in std_logic_vector(95 downto 0);
-    hash_out : out std_logic_vector(95 downto 0)
+    
+    address : out std_logic(5 downto 0);
+    RW : out std_logic;
+    hash_out : out std_logic(7 downto 0);
+    SRAM_data : in std_logic_vector(20 downto 0);
+
+    acc_deny_out : out std_logic
   ) ;
 end Cuckoo_Hashing ;
 
 architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
-
-    type hash_table0 is array (0 to 10) of std_logic_vector(95 downto 0);
-    type hash_table1 is array (0 to 10) of std_logic_vector(95 downto 0);
-    
-    
+   
     type State_type is (rule_searching, hash_matching );
     signal current_state, next_state : State_type;
 
+    component SRAM is
+        port (
+            clk : in std_logic;
+            reset : in std_logic;
+            WE : in std_logic; -- read/write
+            address : in std_logic_vector(5 downto 0);
+            data_in : in std_logic_vector(20 downto 0);
+            data_out : out std_logic_vector(20 downto 0) 
+        );
+    end component;
+
 begin
+
+    SRAM_in : SRAM port map (clk,reset,RW,hash_out,SRAM_data);
+
 
     STATE_MEMORY_LOGIC : process (clk, reset)
     begin
@@ -41,11 +61,11 @@ begin
             if rising_edge(clk) then
                 case(current_state) is
                 
-                    when rule_searching => if rule_flag = '0' then
+                    when rule_searching => if set_rule ='0' then
                         next_state <= hash_matching;
                     end if ;
                         
-                    when hash_matching => if rule_flag = '1' then
+                    when hash_matching => if set_rule = '1' then
                         next_state <= rule_searching;
                     end if ;
 
@@ -63,7 +83,29 @@ begin
                 case(current_state) is
                 
                     when rule_searching => 
-                    --hash_table0(1) <=  x"000000000000000000000000" ;
+                    case( cmd_in ) is
+                   
+                       when "00" => --flush
+                           
+                       when "01" => --insert
+                                if SRAM_data(0) = '0' then
+                                    hash_out <= key_in mod 11;
+                                    data_in <= '1' & (key_in mod 11) & key_in;
+                                elsif SRAM_data(15) = '1' then
+                                    
+                                    --mabye it should assign something to hashtable_1 here
+                                    hashtable_2((key_in/11 mod 11)) <= '1';
+                                else
+                                    report "LOOP DETECTED" severity ERROR;
+                                end if;
+                               
+
+                       when "10" => -- delete
+                                --hashtable_1((key_in mod 11)) <= '0';           
+                       when others => Report "CMD CANNOT BE 11" severity NOTE;
+                   
+                   end case ;
+            
 
                     when hash_matching =>
 
