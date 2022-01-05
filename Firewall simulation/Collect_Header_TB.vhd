@@ -26,6 +26,7 @@ architecture Collect_Header_TB_arch of Collect_Header_TB is
       vld_hash : out std_logic
 
     );
+
   end component;
 
   -- signal declarations
@@ -62,18 +63,14 @@ begin
 
   Resetten : process
   begin
-    reset_TB <= '1';
-    wait for 1ns;
-    reset_TB <= '0';
-    wait;
+    reset_TB <= '1'; wait for 1ns;
+    reset_TB <= '0'; wait;
   end process;
 
   Clocken : process
   begin
-    clk_TB <= '1';
-    wait for 1ns;
-    clk_TB <= '0';
-    wait for 0ns;
+    clk_TB <= '1'; wait for 1ns;
+    clk_TB <= '0'; wait for 0ns;
   end process;
 
   logic : process (clk_TB, reset_TB)
