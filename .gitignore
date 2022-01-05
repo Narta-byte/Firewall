@@ -54,6 +54,9 @@
 *~
 *example*
 *sopc_*
+
+#model simfiles
+*.lock
 # *.sdc # I want those timing files
 
 # ignore Quartus II generated folders
