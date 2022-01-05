@@ -57,7 +57,12 @@ begin
     vld_TB,
     ready_FIFO,
     ready_hash,
-    ready_hash
+    ready_hash,
+    ready_hdr,
+    header_data,
+    packet_forward,
+    vld_FIFO,
+    vld_hash
 
   );
 

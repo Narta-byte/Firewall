@@ -3,11 +3,12 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Scanner;
-
+// C:\Users\Asger\3-ugers\Firewall\Java scripts\oldscripts\Data.txt
 public class WireSharkToInputNew {
     public static void main(String[] args) {
         try {
-            Scanner reader = new Scanner(new File("Data.txt"));
+//            Scanner reader = new Scanner(new File("Data.txt"));
+            Scanner reader = new Scanner(new File("C:/Users/Asger/3-ugers/Firewall/Java scripts/oldscripts/Data.txt"));
             FileWriter writer = new FileWriter(new File("new_input_file.txt"));
             String str = "";
             String line = "";
@@ -19,14 +20,19 @@ public class WireSharkToInputNew {
                     line = line.substring(2,line.length()-19);
                     //System.out.println(line);
 
-                    for (int i = 0; i < 14; i++) {
-                        str = str + line.substring(0,3)+"0\n";
+                    for (int i = 0; i < 13; i++) {
+                        str = str + line.substring(0,3)+"0 0\n";
                         line = line.substring(3,line.length());
                     }
-                    str = str + line.substring(0,3)+"1\n";
-                    line = line.substring(3,line.length());
-                    str = str + line+" 0\n";
 
+                    str = str + line.substring(0,3)+"0 1\n";
+                    line = line.substring(3,line.length());
+
+
+                    str = str + line.substring(0,3)+"1 0\n";
+                    line = line.substring(3,line.length());
+                    str = str + line+" 0 0\n";
+                    
                     writer.write(str);
                     System.out.println(str);
                 } else {
@@ -36,10 +42,10 @@ public class WireSharkToInputNew {
                    // System.out.println(line.length());
                     if (line.length() == 47) {
                         for (int i = 0; i < 15; i++) {
-                            str = str + line.substring(0,3)+"0\n";
+                            str = str + line.substring(0,3)+"0 0\n";
                             line = line.substring(3,line.length());
                         }
-                        str = str + line+" 0\n";
+                        str = str + line+" 0 0\n";
                         writer.write(str);
                         System.out.println(str);
 
@@ -49,7 +55,7 @@ public class WireSharkToInputNew {
                         while (line.length() !=4) {
 
                             if (!(line.substring(0,3).equals("   "))) {
-                                str = str + line.substring(0,3)+"0\n";
+                                str = str + line.substring(0,3)+"0 0\n";
                                 //System.out.println(str);
                                 line = line.substring(3,line.length());
                             } else {

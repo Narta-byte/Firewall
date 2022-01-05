@@ -43,7 +43,7 @@ begin
       iter <= 0;
     elsif Rising_edge(clock) then
       if Sop = '1' then
-        iter = 0;
+        iter <= 0;
       end if;
       iter <= iter + 1;
 
