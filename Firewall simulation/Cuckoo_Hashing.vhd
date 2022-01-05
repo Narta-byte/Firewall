@@ -15,12 +15,7 @@ entity Cuckoo_Hashing is
 
     header_in : in std_logic_vector(95 downto 0);
     
-    address : out std_logic(5 downto 0);
-    RW : out std_logic;
-    hash_out : out std_logic(7 downto 0);
-    key_out : out std_logic_vector(8 downto 0);
-    occupied_flag_out : out std_logic;
-    SRAM_data : in std_logic_vector(13 downto 0);
+    
 
     acc_deny_out : out std_logic
   ) ;
@@ -31,9 +26,14 @@ architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
     type State_type is (rule_searching, hash_matching, lookup_hash1,lookup_hash2,insert_key,remember_and_replace
 ,ERROR,is_occupied);
     signal current_state, next_state : State_type;
+	
+    signal RW : std_logic:='0';
+
 
     signal exits,insert_flag,hashfun,flip : std_logic := '0';
     signal MAX : integer:= 0;
+    signal old_key : std_logic_vector(95 downto 0);
+    
 
     component SRAM is
         port (
@@ -47,10 +47,14 @@ architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
             data_out : out std_logic_vector(20 downto 0) 
         );
     end component;
-   
+   signal hash_out : std_logic_vector(7 downto 0);
+   signal key_out :  std_logic_vector(5 downto 0);
+   signal address :  std_logic_vector(5 downto 0);
+   signal occupied_flag_out :  std_logic;
+   signal SRAM_data :  std_logic_vector(13 downto 0);
 begin
 
-    SRAM_in : SRAM port map (clk,reset,RW,hash_out,key_out,SRAM_data);
+    SRAM_in : SRAM port map (clk,reset,RW,hash_out,occupied_flag_out,key_out,SRAM_data);
 
 
     STATE_MEMORY_LOGIC : process (clk, reset)
@@ -125,7 +129,7 @@ begin
             
                     when insert_key =>
                         if hashfun = '0' then
-                            address <= key_in mod 11;
+                            address <= to_integer(unsigned(key_in)) mod 11;
                             RW <= '1';
                             occupied_flag_out <= '1';
                             hash_out <= key_in mod 11;
@@ -144,23 +148,29 @@ begin
                         RW <= '0';
                         address <= key_in mod 11;
                         
-
                     when lookup_hash2 =>
                         hashfun <= '1';
                         RW <= '0';
                         address <= key_in/11 mod 11;
                         
                     when is_occupied =>
-                        if SRAM_data(13) = '1' then
+                        if SRAM_data(101) = '1' then
                             exits <= '1';
                         else
                             exits <= '0';
                         end if;
                         
                     when remember_and_replace =>
+                        
+                        old_key <= SRAM_data(95 downto 0);
                         RW <= '1';
-                        address <= key_in mod 11;
-
+                        key_out <= key_in;
+                        hash_out <= key_in mod 11;
+                        if flip = '1' then
+                            flip <= '0';
+                        else
+                            flip <= '1';
+                        end if;
                     when ERROR =>
 
                     when others => report "ERROR IN OUTPUT LOGIC" severity failure;
