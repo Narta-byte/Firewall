@@ -79,7 +79,7 @@ R12
 R15
 R16
 Efifo
-Z18 w1641342480
+Z18 w1641382287
 R4
 R5
 R6
@@ -87,14 +87,14 @@ R7
 Z19 8C:/Users/luxen/Firewall/Firewall simulation/FIFO.vhd
 Z20 FC:/Users/luxen/Firewall/Firewall simulation/FIFO.vhd
 l0
-L5
-V066hkMWRm]o<LZKC0c@5<2
-!s100 C=dGaz?[cbcji]5RTR^JG1
+L7
+VOXU:fje`RdV`TLGle=GTd1
+!s100 kJcNK_QAJEBNOz6QMJ6[c3
 R10
 32
-Z21 !s110 1641342510
+Z21 !s110 1641382318
 !i10b 1
-Z22 !s108 1641342510.000000
+Z22 !s108 1641382318.000000
 Z23 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|C:/Users/luxen/Firewall/Firewall simulation/FIFO.vhd|
 Z24 !s107 C:/Users/luxen/Firewall/Firewall simulation/FIFO.vhd|
 !i113 1
@@ -104,11 +104,11 @@ Abehavioral
 R4
 R5
 R6
-Z25 DEx4 work 4 fifo 0 22 066hkMWRm]o<LZKC0c@5<2
-l30
-L18
-Z26 VY`XUk@OQkFY=FnWohiVNG2
-Z27 !s100 9Mi[ORE7=IljhgSzSOo=:1
+Z25 DEx4 work 4 fifo 0 22 OXU:fje`RdV`TLGle=GTd1
+l40
+L32
+Z26 VkJlD^FcPKFMc_8<E0Fd=O3
+Z27 !s100 :D4FQn2b?IX`_@jGl@XAQ3
 R10
 32
 R21
