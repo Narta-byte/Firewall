@@ -9,8 +9,8 @@ entity FIFO is
     port (
         clk         : in std_logic;
         reset       : in std_logic;
-        wren        : in std_logic; --Writer = '0' when not in use 
-        rden        : in std_logic; --Reader = '0' when not in use 
+        read_en     : in std_logic; --Reader = '0' when not in use 
+        write_en    : in std_logic; --Writer = '0' when not in use
 
         -- Collect Header interface 
         hdr_dat     : in std_logic_vector(7 downto 0);
@@ -30,57 +30,99 @@ end entity;
 
 
 architecture behavioral of FIFO is
-  
+    
+    type FILL_UP is (filled, empty);
+    signal currentstate, nextstate: FILL_UP;
+   
     type mem_type is array (0 to depth-1) of std_logic_vector(7 downto 0);
     signal mem      : mem_type  := (others => (others => '0'));
-    signal rpt, wpt : integer   := 0; --Read and write pointer 
+
+    signal readpoint, writepoint : integer   := 0; --Read and write pointer 
     signal full     : std_logic := '0';
+
+    --signal all_data : hdr_sop + hdr_dat + hrd_eop;
     --signal send_pck : std_logic := '0'; 
+   -- type State_type is (readpoint, writepoint );
+   -- signal current_state, next_state : State_type;
 
 begin
 
     rdy_FIFO <= not(full); 
 
-    process (clk, reset)
+    --read_en <= '1' when rdy_FIFO = '1';
+    Clk : process (clk, reset)
+    begin
+        if(reset = '1') then 
+            currentstate <= element_num;
+        end if; 
+    end process;
 
-        variable element_num : integer := 0;
+    FILL : process (clk, reset)
+
+        
 
     begin
         if (reset = '1') then
-            dat_FIFO    <= (others => '0');
             full        <= '0';
-            rpt         <= 0;
-            wpt         <= 0;
+            val_FIFO    <= '0';
+            dat_FIFO    <= (others => '0');
+            FIFO_sop    <= '0';
+            FIFO_eop    <= '0';
             element_num := 0;
-        elsif(rising_edge(clk)) then
-            if(rden = '1') then
-                dat_FIFO <= mem(rpt);
-                rpt <= rpt + 1;
-                element_num := element_num - 1;
+            readpoint   <= 0;
+            writepoint  <= 0;
+           
+        elsif(rising_edge(clk)) then 
+            if (read_en = '1' and rdy_FIFO='1') then 
+                dat_FIFO     <= mem(readpoint);
+                readpoint    <= readpoint + 1; 
+                element_num  := depth - 1; 
             end if;
-        if (wren = '1' and full = '0') then
-            mem(wpt) <= hdr_dat;
-            wpt <= wpt + 1; 
-            element_num := element_num - 1; 
-        end if;
+            if (write_en = '1' and full = '0') then
+                mem(writepoint) <= hdr_sop + hdr_dat + hrd_eop;
+                writepoint <= writepoint + 1; 
+                element_num := element_num + 1; 
+            end if;
+    
+            -- When FIFO is full/ready  
+            if (readpoint = depth - 1) then
+            readpoint <= 0;
+            end if;
+            if (writepoint = depth - 1) then
+            writepoint <= 0;            
+            end if;
 
-        if (rpt = depth - 1) then
-            rpt <= 0;
-        end if;
-        if (wpt = depth - 1) then
-            wpt <= 0;            
-        end if;
-
-        if (element_num = depth) then
+            if (element_num = depth) then
             full <= '1';            
-        else
+            else
             full <= '0';
-        end if;
+            end if;
     end if;
 
-    
-
     end process;
+
+
+    --NEXT_STATE_LOGIC : process (current_state)
+    --begin
+      --  next_state <= current_state;
+        --
+          --  if rising_edge(clk) then
+            --    case(current_state) is
+              --  
+                --    when rden => if full ='0' then
+                  --      next_state <= mem(rpt);
+                    --end if ;
+                        
+                   -- when wren => if full = '1' then
+                   --     next_state <= rden;
+                    --end if ;
+
+                   -- when others => next_state <= wren;
+                --
+                --end case ;
+            --end if ;
+    --end process;
+    
     
 
 end architecture;
