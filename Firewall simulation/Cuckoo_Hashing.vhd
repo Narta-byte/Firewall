@@ -30,14 +30,14 @@ end Cuckoo_Hashing ;
 
 architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
 
-    type State_type is (rule_searching, hash_matching, lookup_hash1,lookup_hash2,insert_key,remember_and_replace
-,ERROR,is_occupied,rdy_key);
+    type State_type is (idle, hash_matching, lookup_hash1,lookup_hash2,insert_key,remember_and_replace
+,ERROR,is_occupied,rdy_key,flush_memory);
     signal current_state, next_state : State_type;
 
     signal RW : std_logic:='0';
 
 
-    signal exits,insert_flag,hashfun,flip : std_logic := '0';
+    signal exits,insert_flag,hashfun,flip,flush_flag,flush_sram : std_logic := '0';
     signal MAX : integer:= 0;
     signal old_key : std_logic_vector(95 downto 0);
     signal rdy_interal : std_logic;
@@ -52,6 +52,7 @@ architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
         port (
             clk : in std_logic;
             reset : in std_logic;
+	    flush_sram : in std_logic;
             WE : in std_logic; -- read/write
             address : in std_logic_vector(5 downto 0);
             occupied_flag_in : in std_logic;
@@ -71,7 +72,7 @@ architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
    
 begin
 
-    SRAM_in : SRAM port map (clk,reset,RW,address,occupied_flag_out,hash_out,key_out,SRAM_data);
+    SRAM_in : SRAM port map (clk,reset,flush_sram,RW,address,occupied_flag_out,hash_out,key_out,SRAM_data);
     rdy <= rdy_interal;
 
     STATE_MEMORY_LOGIC : process (clk, reset)
@@ -83,24 +84,29 @@ begin
         end if ;
     end process;
 
-    NEXT_STATE_LOGIC : process (current_state, insert_flag, set_rule, rdy_interal, val, exits, max, flip)
+    NEXT_STATE_LOGIC : process (current_state, insert_flag, set_rule, rdy_interal, val, exits, max, flip,flush_flag)
     begin
         next_state <= current_state;
 
 
                 case(current_state) is
 
-                    when rule_searching => if insert_flag ='1' then
+                    when idle => if flush_flag = '1' then
+                        next_state <= flush_memory;
+                    elsif insert_flag ='1' then
                         next_state <= rdy_key;
                     elsif set_rule = '0' then
                         next_state <= hash_matching;
                     end if ;
-                    when rdy_key => if rdy_interal = '1' and val ='1' then
+                    when rdy_key => if insert_flag ='0' then
+                        next_state <= idle;
+                    elsif val ='1' then
                         next_state <= lookup_hash1;
                     end if ;
-
+                    when flush_memory => next_state <=idle;
+                        
                     when hash_matching => if set_rule = '1' then
-                        next_state <= rule_searching;
+                        next_state <= idle;
                     end if ;
 
                     when lookup_hash1 => next_state <= is_occupied;
@@ -131,11 +137,12 @@ begin
 
                 case(current_state) is
 
-                    when rule_searching =>
+                    when idle =>
+                        flush_sram <= '0'; 
                     case( cmd_in ) is
 
                        when "00" => --flush
-                           --TODO
+                           flush_flag <= '1';
                        when "01" => --insert
                             insert_flag <= '1';
                        when "10" => -- delete
@@ -143,7 +150,8 @@ begin
                        when others => Report "CMD CANNOT BE 11" severity NOTE;
 
                    end case ;
-                       when hash_matching =>
+                       when hash_matching => --TODO
+                       when flush_memory => flush_sram <= '1'; flush_flag <= '0';
 
                     when insert_key =>
                         if hashfun = '0' then
@@ -156,7 +164,7 @@ begin
                             key_out <= insertion_key;
                             flip <= '1';
                         else
-                            address <= std_logic_vector(to_unsigned(to_integer(unsigned(insertion_key))/11 mod 11+15,96)(5 downto 0)); -- an abritary number
+                            address <= std_logic_vector(to_unsigned((to_integer(unsigned(insertion_key))/11 mod 11)+15,96)(5 downto 0)); -- an abritary number
                             RW <= '1';
                             occupied_flag_out <= '1';
                             --hash_out <= std_logic_vector(to_unsigned(to_integer(unsigned(key_in))/11 mod 11+15,96)(5 downto 0));
@@ -181,7 +189,13 @@ begin
                     when is_occupied =>
                         test_sram_msb <= SRAM_data(102);
 
-                        insertion_key <= key_in;
+                        if hashfun = '1' then
+                            insertion_key <= old_key;
+                        elsif hashfun = '0' then
+                            insertion_key <= key_in;
+                        end if ;
+
+
                         if SRAM_data(102) = '1' then
                             exits <= '1';
                         else

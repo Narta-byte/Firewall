@@ -35,7 +35,7 @@ architecture bench of Cuckoo_Hashing_tb is
   signal acc_deny_out : std_logic;
 
   -- fsm logic
-  type State_type is (setup_rulesearch,set_key,wait_for_ready,send_key,TERMINATE);
+  type State_type is (setup_rulesearch,set_key,wait_for_ready,send_key,TERMINATE, wipe_memory);
   signal current_state, next_state : State_type;
 
   signal data_end,done_looping : std_logic :='0';
@@ -84,8 +84,8 @@ begin
   begin    
       case current_state is
         when setup_rulesearch =>
-          next_state <= set_key;
-  
+          next_state <= wipe_memory;
+        when wipe_memory => next_state <= set_key;
         when set_key => if done_looping = '1' then
           next_state <= wait_for_ready;
         end if ;
@@ -107,22 +107,18 @@ begin
       end case;
   end process;
 
-  OUTPUT_LOGIC : process (clk,reset)
+  OUTPUT_LOGIC : process (current_state)
   file input : TEXT open READ_MODE is "cuckoo_hash testdata.txt";
   variable current_read_line : line;
   variable hex_reader : std_logic_vector(7 downto 0);
   
-  begin
-    if reset = '1' then
-    
-    elsif rising_edge(clk) then
-      
+  begin     
       case current_state is
-
       when setup_rulesearch => 
         set_rule <= '1';
 	      cnt <= 0;
-
+      
+      when wipe_memory => cmd_in <= "00";
       when set_key =>
        
           READ_ARRAY : for i in 0 to 9 loop
@@ -150,7 +146,7 @@ begin
       when others => report "FAILURE" severity failure;
           
       end case;
-    end if;
+   
   end process;
 
 
