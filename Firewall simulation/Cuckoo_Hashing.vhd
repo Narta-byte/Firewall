@@ -40,7 +40,7 @@ architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
     signal exits,insert_flag,hashfun,flip,flush_flag,flush_sram : std_logic := '0';
     signal MAX : integer:= 0;
     signal old_key : std_logic_vector(95 downto 0);
-    signal rdy_interal : std_logic;
+    --signal rdy_interal : std_logic;
     
     signal test_int : integer;
     signal test_old_key : std_logic_vector(95 downto 0);
@@ -73,7 +73,7 @@ architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
 begin
 
     SRAM_in : SRAM port map (clk,reset,flush_sram,RW,address,occupied_flag_out,hash_out,key_out,SRAM_data);
-    rdy <= rdy_interal;
+    --rdy <= rdy_interal;
 
     STATE_MEMORY_LOGIC : process (clk, reset)
     begin
@@ -84,7 +84,7 @@ begin
         end if ;
     end process;
 
-    NEXT_STATE_LOGIC : process (current_state, insert_flag, set_rule, rdy_interal, val, exits, max, flip,flush_flag)
+    NEXT_STATE_LOGIC : process (current_state, insert_flag, set_rule, val, exits, max, flip,flush_flag)
     begin
         next_state <= current_state;
 
@@ -162,7 +162,12 @@ begin
                             hash_out <= "000000";
                             --key_out  <= key_in;
                             key_out <= insertion_key;
-                            flip <= '1';
+                            flip <= '0'; -- måske et issuee
+                            -- if hashfun = '1' then
+                            --     insertion_key <= old_key;
+                            -- elsif hashfun = '0' then
+                            --     insertion_key <= key_in;
+                            -- end if ;
                         else
                             address <= std_logic_vector(to_unsigned((to_integer(unsigned(insertion_key))/11 mod 11)+15,96)(5 downto 0)); -- an abritary number
                             RW <= '1';
@@ -170,13 +175,20 @@ begin
                             --hash_out <= std_logic_vector(to_unsigned(to_integer(unsigned(key_in))/11 mod 11+15,96)(5 downto 0));
                             hash_out <= "000000";
                             --key_out  <= key_in;
+                            flip <= '0'; -- måske et issuee
                             key_out <= insertion_key;
+                            -- if hashfun = '1' then
+                            --     insertion_key <= old_key;
+                            -- elsif hashfun = '0' then
+                            --     insertion_key <= key_in;
+                            -- end if ;
 
                         end if;
-                    when rdy_key => rdy_interal <= '1';
+                    when rdy_key => rdy <= '1'; insertion_key<=key_in;
 
                     when lookup_hash1 =>
-                        rdy_interal <= '0';
+                        
+                        rdy <= '0';
                         hashfun <= '0';
                         RW <= '0';
                         address <= std_logic_vector(to_unsigned(to_integer(unsigned(insertion_key)) mod 11,96)(5 downto 0));
@@ -185,15 +197,14 @@ begin
                         hashfun <= '1';
                         RW <= '0';
                         address <= std_logic_vector(to_unsigned(to_integer(unsigned(insertion_key))/11 mod 11,96)(5 downto 0));
-
                     when is_occupied =>
-                        test_sram_msb <= SRAM_data(102);
 
-                        if hashfun = '1' then
-                            insertion_key <= old_key;
-                        elsif hashfun = '0' then
-                            insertion_key <= key_in;
-                        end if ;
+                        
+                        -- if hashfun = '1' then
+                        --     insertion_key <= old_key;
+                        -- elsif hashfun = '0' then
+                        --     insertion_key <= key_in;
+                        -- end if ;
 
 
                         if SRAM_data(102) = '1' then
