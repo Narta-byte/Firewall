@@ -57,6 +57,11 @@
 
 #model simfiles
 *.lock
+*.mti
+*.mpf
+*.qip
+*.qdp
+*.qtl
 # *.sdc # I want those timing files
 
 # ignore Quartus II generated folders
