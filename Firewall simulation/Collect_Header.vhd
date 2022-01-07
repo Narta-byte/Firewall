@@ -29,19 +29,15 @@ end entity;
 architecture Collect_Header_arch of Collect_Header is
 
   -- type Statype is (idle, collect_header, );
-    
 
   -- signal declarations
   signal srcaddr : std_logic_vector (31 downto 0) := x"00000000"; --Store source address here
-
-  signal destaddr : std_logic_vector (31 downto 0) := x"00000000"; --Store destination address here
-
+  signal destaddr : std_logic_vector (31 downto 0) := x"00000000"; --Store destination address her
   signal srcport : std_logic_vector (15 downto 0) := x"0000"; -- fang source ports her
-  
   signal destport : std_logic_vector (15 downto 0) := x"0000"; -- fang destsource ports her
+  signal tothemoon : std_logic_vector (95 downto 0) := x"000000000000000000000000";
   
   signal iter : integer := 0;
-  signal tothemoon : std_logic_vector (95 downto 0) := x"000000000000000000000000";
   
   signal store0 : std_logic_vector (7 downto 0) := x"00";
   signal store1 : std_logic_vector (7 downto 0) := x"00";
@@ -50,14 +46,11 @@ architecture Collect_Header_arch of Collect_Header is
   signal intvld_hdr : std_logic;
   signal forwardSoP : std_logic;
   signal forwardEoP : std_logic;
-  
+
+  -- signal rdy_FIFO : std_logic;
+  -- signal rdy_hash : std_logic;
 
 begin
-
-
-
-
-
 
   Collect : process (clk, reset)
   begin
@@ -66,6 +59,8 @@ begin
       destaddr <= x"00000000";
       srcport <= x"0000";
       destport <= x"0000";
+      -- rdy_fifo <='0';
+      -- rdy_hash <= '0';
 
 
       iter <= 0;
@@ -74,6 +69,7 @@ begin
       iter <= iter + 1;
       hdr_SoP <= SoP;
       hdr_EoP <= EoP;
+
 
       if SoP = '1' and clk'event then
         iter <= 0;
@@ -113,15 +109,14 @@ begin
         destaddr <= store0 & store1 & store2 & packet_in;
       end if;
 
-      if iter >= 19 and iter <= 20 then
+      if iter >= 19 and iter <= 20 then -- SRCPORT
         if iter = 19 then
           store0 <= packet_in;
         end if;
         srcport <= store0 & packet_in;
       end if;
 
-
-      if iter >= 21 and iter <= 22 then
+      if iter >= 21 and iter <= 22 then -- DESTPORT
         if iter = 21 then
           store0 <= packet_in;
         end if;
@@ -151,7 +146,7 @@ begin
       end if;
 
     end if;    
-
+    
   end process;
-
+  
 end architecture;

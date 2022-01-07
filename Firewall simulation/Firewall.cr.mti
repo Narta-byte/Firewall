@@ -1,4 +1,18 @@
-{C:/Users/luxen/Firewall/Firewall simulation/Cuckoo_Hashing_tb.vhd} {0 {vcom -work work -2002 -explicit -stats=none {C:/Users/luxen/Firewall/Firewall simulation/Cuckoo_Hashing_tb.vhd}
+{C:/Users/luxen/Firewall/Firewall simulation/Cuckoo_Hashing.vhd} {0 {vcom -work work -2002 -explicit -stats=none {C:/Users/luxen/Firewall/Firewall simulation/Cuckoo_Hashing.vhd}
+Model Technology ModelSim ALTERA vcom 10.4b Compiler 2015.05 May 27 2015
+-- Loading package STANDARD
+-- Loading package TEXTIO
+-- Loading package std_logic_1164
+-- Loading package NUMERIC_STD
+-- Loading package MATH_REAL
+-- Loading package std_logic_arith
+-- Loading package STD_LOGIC_UNSIGNED
+-- Compiling entity Cuckoo_Hashing
+** Error: C:/Users/luxen/Firewall/Firewall simulation/Cuckoo_Hashing.vhd(18): Index constraint cannot be applied to non-array type ieee.std_logic_1164.STD_LOGIC.
+** Error: C:/Users/luxen/Firewall/Firewall simulation/Cuckoo_Hashing.vhd(20): Index constraint cannot be applied to non-array type ieee.std_logic_1164.STD_LOGIC.
+** Error: C:/Users/luxen/Firewall/Firewall simulation/Cuckoo_Hashing.vhd(25): VHDL Compiler exiting
+
+} {11.0 14.0} {}} {C:/Users/luxen/Firewall/Firewall simulation/Cuckoo_Hashing_tb.vhd} {0 {vcom -work work -2002 -explicit -stats=none {C:/Users/luxen/Firewall/Firewall simulation/Cuckoo_Hashing_tb.vhd}
 Model Technology ModelSim ALTERA vcom 10.4b Compiler 2015.05 May 27 2015
 -- Loading package STANDARD
 -- Loading package TEXTIO
@@ -10,16 +24,50 @@ Model Technology ModelSim ALTERA vcom 10.4b Compiler 2015.05 May 27 2015
 ** Error: C:/Users/luxen/Firewall/Firewall simulation/Cuckoo_Hashing_tb.vhd(16): near ")": (vcom-1576) expecting IDENTIFIER.
 
 
-} {10.0 11.0} {}} {C:/Users/luxen/Firewall/Firewall simulation/Collect_Header.vhd} {0 {vcom -work work -2002 -explicit -stats=none {C:/Users/luxen/Firewall/Firewall simulation/Collect_Header.vhd}
+} {10.0 11.0} {}} {C:/Users/luxen/Firewall/Firewall simulation/Collect_Header.vhd} {0 {vcom -work work -2002 -explicit -stats=none {C:\Users\luxen\Firewall\Firewall simulation\Collect_Header.vhd}
 Model Technology ModelSim ALTERA vcom 10.4b Compiler 2015.05 May 27 2015
 -- Loading package STANDARD
 -- Loading package TEXTIO
 -- Loading package std_logic_1164
 -- Loading package NUMERIC_STD
 -- Loading package MATH_REAL
-** Error: C:/Users/luxen/Firewall/Firewall simulation/Collect_Header.vhd(15): near "EOF": syntax error
+-- Compiling entity Collect_Header
+** Error: C:\Users\luxen\Firewall\Firewall simulation\Collect_Header.vhd(20): near ")": (vcom-1576) expecting IDENTIFIER.
 
-} {8.0 9.0} {}} {C:/Users/luxen/Firewall/Firewall simulation/test.vhd} {1 {vcom -work work -2002 -explicit -stats=none {C:/Users/luxen/Firewall/Firewall simulation/test.vhd}
+
+} {9.0 10.0} {}} {C:/Users/luxen/Firewall/Firewall simulation/SRAM.vhd} {2 {vcom -work work -2002 -explicit -stats=none {C:/Users/luxen/Firewall/Firewall simulation/SRAM.vhd}
+Model Technology ModelSim ALTERA vcom 10.4b Compiler 2015.05 May 27 2015
+-- Loading package STANDARD
+-- Loading package TEXTIO
+-- Loading package std_logic_1164
+-- Loading package NUMERIC_STD
+-- Loading package MATH_REAL
+-- Compiling entity SRAM
+-- Compiling architecture SRAM_arch of SRAM
+** Warning: C:/Users/luxen/Firewall/Firewall simulation/SRAM.vhd(30): (vcom-1272) Length of expected is 14; length of actual is 16.
+
+** Warning: C:/Users/luxen/Firewall/Firewall simulation/SRAM.vhd(32): (vcom-1272) Length of expected is 21; length of actual is 14.
+
+
+} {} {}} {C:/Users/luxen/Firewall/Firewall simulation/FIFO.vhd} {0 {vcom -work work -2002 -explicit -stats=none {C:\Users\luxen\Firewall\Firewall simulation\FIFO.vhd}
+Model Technology ModelSim ALTERA vcom 10.4b Compiler 2015.05 May 27 2015
+-- Loading package STANDARD
+-- Loading package TEXTIO
+-- Loading package std_logic_1164
+-- Loading package NUMERIC_STD
+-- Compiling entity FIFO
+-- Compiling architecture behavioral of FIFO
+** Error: C:\Users\luxen\Firewall\Firewall simulation\FIFO.vhd(68): Cannot read output "rdy_FIFO".
+	VHDL 2008 allows reading outputs.
+	This facility is enabled by compiling with -2008.
+** Error: C:\Users\luxen\Firewall\Firewall simulation\FIFO.vhd(74): (vcom-1581) No feasible entries for infix operator '+'.
+
+** Error: C:\Users\luxen\Firewall\Firewall simulation\FIFO.vhd(74): ** Error: (vcom-1590) Bad expression in left operand of infix expression '+'.
+
+** Error: C:\Users\luxen\Firewall\Firewall simulation\FIFO.vhd(74): Bad right hand side (infix expression) in signal assignment.
+** Error: C:\Users\luxen\Firewall\Firewall simulation\FIFO.vhd(120): VHDL Compiler exiting
+
+} {9.0 10.0 12.0 13.0 14.0 15.0 16.0 18.0} {}} {C:/Users/luxen/Firewall/Firewall simulation/test.vhd} {1 {vcom -work work -2002 -explicit -stats=none {C:/Users/luxen/Firewall/Firewall simulation/test.vhd}
 Model Technology ModelSim ALTERA vcom 10.4b Compiler 2015.05 May 27 2015
 -- Loading package STANDARD
 -- Loading package TEXTIO

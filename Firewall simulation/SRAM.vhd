@@ -9,16 +9,16 @@ entity SRAM is
     reset : in std_logic;
     WE : in std_logic; -- read/write
     address : in std_logic_vector(5 downto 0);
-    hash_in : in std_logic_vector(5 downto 0);
-    key_in : in std_logic_vector(8 downto 0);
     occupied_flag_in : in std_logic;
-    data_out : out std_logic_vector(20 downto 0) 
+    hash_in : in std_logic_vector(5 downto 0);
+    key_in : in std_logic_vector(95 downto 0);
+    data_out : out std_logic_vector(102 downto 0) 
   ) ;
 end SRAM ;
 
 architecture SRAM_arch of SRAM is
   
-  type RW_type is array (0 to 32) of std_logic_vector(1+4+8 downto 0); --occupied, hash, key 
+  type RW_type is array (0 to 32) of std_logic_vector(102 downto 0); --occupied, hash, key 
   signal RW : RW_type;
 
 begin

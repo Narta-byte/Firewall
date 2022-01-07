@@ -7,310 +7,454 @@ z2
 !i10e 25
 !i10f 100
 cModel Technology
-dC:/intelFPGA/18.1
-Ecollect_header
-Z0 w1641553849
-Z1 DPx4 ieee 9 math_real 0 22 Sk6CSihbPL<f[^Shm]=KX0
-Z2 DPx4 ieee 11 numeric_std 0 22 :ASDNFgHXf_ih3J@9F3Ze1
-Z3 DPx3 std 6 textio 0 22 zE1`LPoLg^DX3Oz^4Fj1K3
-Z4 DPx4 ieee 14 std_logic_1164 0 22 eNV`TJ_GofJTzYa?f<@Oe1
-Z5 dC:/Users/Asger/3-ugers/Firewall/Firewall simulation
-Z6 8C:/Users/Asger/3-ugers/Firewall/Firewall simulation/Collect_Header.vhd
-Z7 FC:/Users/Asger/3-ugers/Firewall/Firewall simulation/Collect_Header.vhd
-l0
-L6
-V1MI45f35go;Cg4RAjT2490
-!s100 H2eojJmWkagLm_B5K6H@i0
-Z8 OV;C;10.4b;61
-32
-Z9 !s110 1641553855
-!i10b 1
-Z10 !s108 1641553855.000000
-Z11 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|C:/Users/Asger/3-ugers/Firewall/Firewall simulation/Collect_Header.vhd|
-Z12 !s107 C:/Users/Asger/3-ugers/Firewall/Firewall simulation/Collect_Header.vhd|
-!i113 1
-Z13 o-work work -2002 -explicit
-Z14 tExplicit 1
-Acollect_header_arch
+Z0 dC:/intelFPGA/18.1
+<<<<<<< HEAD
+Z1 w1641299544
+Z2 DPx4 ieee 9 math_real 0 22 Sk6CSihbPL<f[^Shm]=KX0
+Z3 DPx4 ieee 11 numeric_std 0 22 :ASDNFgHXf_ih3J@9F3Ze1
+Z4 =======
 R1
-R2
-R3
-R4
-Z15 DEx4 work 14 collect_header 0 22 1MI45f35go;Cg4RAjT2490
-l55
-L29
-Vo8RR>BlG]]nSVbkcd?;_a2
-!s100 Nc7g9L4zB:kfMzY?]Q0WA3
-R8
-32
-R9
+R0
+<<<<<<< HEAD
+Z5 !s110 1641301971
 !i10b 1
-R10
-R11
-R12
-!i113 1
-R13
-R14
-Ecollect_header_tb
-Z16 w1641548138
-Z17 DPx4 ieee 16 std_logic_textio 0 22 V5TSK`;aJKC<l]CEg1>mz1
-Z18 DPx4 ieee 20 numeric_std_unsigned 0 22 jF^[l6kSe0l<k3W[UC=P83
-R2
-R3
+Z6 !s108 1641301971.000000
 R4
-R5
-Z19 8C:/Users/Asger/3-ugers/Firewall/Firewall simulation/Collect_Header_TB.vhd
-Z20 FC:/Users/Asger/3-ugers/Firewall/Firewall simulation/Collect_Header_TB.vhd
-l0
-L10
-V_PP_JM32eJUgnVV:8YFY]2
-!s100 HSCR:Jd2bgYSXHlhiH2:@1
-R8
-32
-R9
+Z7 !s110 1641457663
 !i10b 1
-R10
-Z21 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|C:/Users/Asger/3-ugers/Firewall/Firewall simulation/Collect_Header_TB.vhd|
-Z22 !s107 C:/Users/Asger/3-ugers/Firewall/Firewall simulation/Collect_Header_TB.vhd|
-!i113 1
-R13
-R14
-Acollect_header_tb_arch
-R17
-R18
-R2
+Z8 !s108 1641457663.000000
+R0
+<<<<<<< HEAD
+w1641382287
 R3
-R4
-DEx4 work 17 collect_header_tb 0 22 _PP_JM32eJUgnVV:8YFY]2
-l56
-L13
-VhGe><8LdbiHP>?^C^MnlA3
-!s100 0Ra5_N_mj423n9Y3XN4VT2
-R8
-32
-R9
-!i10b 1
-R10
-R21
-R22
-!i113 1
-R13
-R14
-Ecuckoo_hashing
-Z23 w1641301292
-Z24 DPx4 ieee 15 std_logic_arith 0 22 [G314=:2zXJ`VORJe1J@Z1
-Z25 DPx4 ieee 18 std_logic_unsigned 0 22 ;eZjO2D4ZDz<]0>8AL<ne1
-R1
-R2
-R3
-R4
-Z26 dC:/Users/luxen/Firewall/Firewall simulation
-Z27 8C:/Users/luxen/Firewall/Firewall simulation/Cuckoo_Hashing.vhd
-Z28 FC:/Users/luxen/Firewall/Firewall simulation/Cuckoo_Hashing.vhd
+Z9 DPx3 std 6 textio 0 22 zE1`LPoLg^DX3Oz^4Fj1K3
+Z10 DPx4 ieee 14 std_logic_1164 0 22 eNV`TJ_GofJTzYa?f<@Oe1
+Z11 dC:/Users/luxen/Firewall/Firewall simulation
+Z12 8C:/Users/luxen/Firewall/Firewall simulation/FIFO.vhd
+Z13 FC:/Users/luxen/Firewall/Firewall simulation/FIFO.vhd
 l0
 L7
-VWHR]bW>@g6E40kEMJiDU@0
-!s100 dF0L`7HoU]2gXCkikZ9V62
-R8
+VOXU:fje`RdV`TLGle=GTd1
+!s100 kJcNK_QAJEBNOz6QMJ6[c3
+Z14 OV;C;10.4b;61
 32
-Z29 !s110 1641301971
+Z15 !s110 1641382318
 !i10b 1
-Z30 !s108 1641301971.000000
-Z31 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|C:/Users/luxen/Firewall/Firewall simulation/Cuckoo_Hashing.vhd|
-Z32 !s107 C:/Users/luxen/Firewall/Firewall simulation/Cuckoo_Hashing.vhd|
-!i113 1
-R13
+Z16 !s108 1641382318.000000
+Z17 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|C:/Users/luxen/Firewall/Firewall simulation/FIFO.vhd|
+Z18 !s107 C:/Users/luxen/Firewall/Firewall simulation/FIFO.vhd|
+R4
+w1641457656
+R10
+Z19 dC:/Users/Asger/3-ugers/Firewall/Firewall simulation
+Z20 8C:/Users/Asger/3-ugers/Firewall/Firewall simulation/Collect_Header.vhd
+Z21 FC:/Users/Asger/3-ugers/Firewall/Firewall simulation/Collect_Header.vhd
+8C:\Users\luxen\Firewall\Firewall simulation\FIFO.vhd
+FC:\Users\luxen\Firewall\Firewall simulation\FIFO.vhd
+l0
+L7
+VULdSm?z]0kGXB:IaSf9go2
+!s100 O`B20R8gnD8Bo6dU[hZ:D2
+Z22 !s108 1641553855.000000
+32
+R7
+!i10b 1
+R8
+!s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|C:\Users\luxen\Firewall\Firewall simulation\FIFO.vhd|
+!s107 C:\Users\luxen\Firewall\Firewall simulation\FIFO.vhd|
+<<<<<<< HEAD
+R4
+R19
+R20
+<<<<<<< HEAD
 R14
-Acuckoo_hashing_tb
-R24
-R25
+32
+R15
+!i10b 1
+R16
+R17
+R18
+!i113 1
+Z23 o-work work -2002 -explicit
+Z24 tExplicit 1
+R4
+R22
+32
+R15
+!i10b 1
+R16
+R17
+R18
+!i113 1
+Z25 DEx4 work 14 collect_header 0 22 1MI45f35go;Cg4RAjT2490
+w1641548138
+R13
+R12
+R0
+<<<<<<< HEAD
+R17
+R18
+R4
+R17
+R18
+R0
+<<<<<<< HEAD
 R1
 R2
 R3
-R4
-DEx4 work 14 cuckoo_hashing 0 22 WHR]bW>@g6E40kEMJiDU@0
-l26
-L17
-VdoAUkk1WC<2U0RFb@AHL53
-!s100 cKh60d^joW6mbb`1]9>FZ1
-R8
+R9
+R10
+R11
+Z26 8C:/Users/luxen/Firewall/Firewall simulation/SRAM.vhd
+Z27 FC:/Users/luxen/Firewall/Firewall simulation/SRAM.vhd
+l0
+L6
+Vjh7CN@4PK9fY452;JOn123
+!s100 Di`=76FRG`=?d1<nYd]R:0
+R14
 32
-R29
+Z28 !s110 1641301972
 !i10b 1
+Z29 !s108 1641301972.000000
+Z30 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|C:/Users/luxen/Firewall/Firewall simulation/SRAM.vhd|
+Z31 !s107 C:/Users/luxen/Firewall/Firewall simulation/SRAM.vhd|
+R4
+w1641370554
+R9
+R10
+R19
+R20
+R21
+R26
+R27
+l0
+L6
+VzM8Tm9[DWEebT:?BH@HDZ3
+!s100 63dN`@DeUljHGzl6dcn[V3
+R22
+32
+Z32 !s110 1641457664
+!i10b 1
+R8
 R30
 R31
-R32
-!i113 1
-R13
+<<<<<<< HEAD
+DEx4 work 4 sram 0 22 jh7CN@4PK9fY452;JOn123
+l22
+L17
+VXejE3ZD7Q5A;mkU@_aMSP0
+!s100 `4CA3iLo4d>81fQ3Z1m9?3
 R14
-Ecuckoo_hashing_tb
-Z33 w1641299544
-R1
+32
+R28
+!i10b 1
+R29
+R30
+R31
+R4
+R19
+R20
+Z33 DEx4 work 4 sram 0 22 zM8Tm9[DWEebT:?BH@HDZ3
+l23
+L18
+V64A^ccE9TW9E58dCol3T73
+!s100 EaYXIhzQ`0@BH>aZ[N=622
+R22
+32
+R32
+!i10b 1
+R8
+R30
+R31
+<<<<<<< HEAD
+Z34 w1641220163
 R2
 R3
+R9
+R10
+R27
+Z35 8C:/Users/luxen/Firewall/Firewall simulation/test.vhd
+Z36 FC:/Users/luxen/Firewall/Firewall simulation/test.vhd
 R4
-R26
+R34
+R9
+R10
+R19
+R20
+R21
+R35
+R36
+<<<<<<< HEAD
+R31
+!i10b 1
+R33
+Z37 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|C:/Users/luxen/Firewall/Firewall simulation/test.vhd|
+Z38 !s107 C:/Users/luxen/Firewall/Firewall simulation/test.vhd|
+R4
+R7
+!i10b 1
+R8
+R37
+R38
+R0
+<<<<<<< HEAD
+R31
+!i10b 1
+R33
+R37
+R38
+R4
+R7
+!i10b 1
+R8
+R37
+R38
+R0
+>>>>>>> 5613cd4d21b3765817a6ce6865989f04b2ae7262
+R9
+R10
+R11
 8C:/Users/luxen/Firewall/Firewall simulation/Cuckoo_Hashing_tb.vhd
 FC:/Users/luxen/Firewall/Firewall simulation/Cuckoo_Hashing_tb.vhd
 l0
 L6
 VUjlfO0Z_@?P=`IKSZG<]V2
 !s100 FA38b<g1j:S?f33zL[e=12
-R8
+R14
 32
-R29
-!i10b 1
-R30
+>>>>>>> 5613cd4d21b3765817a6ce6865989f04b2ae7262
 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|C:/Users/luxen/Firewall/Firewall simulation/Cuckoo_Hashing_tb.vhd|
 !s107 C:/Users/luxen/Firewall/Firewall simulation/Cuckoo_Hashing_tb.vhd|
 !i113 1
-R13
-R14
-Efifo
-Z34 w1641382287
-R2
-R3
-R4
-R26
-Z35 8C:/Users/luxen/Firewall/Firewall simulation/FIFO.vhd
-Z36 FC:/Users/luxen/Firewall/Firewall simulation/FIFO.vhd
-l0
-L7
-VOXU:fje`RdV`TLGle=GTd1
-!s100 kJcNK_QAJEBNOz6QMJ6[c3
-R8
-32
-Z37 !s110 1641382318
-!i10b 1
-Z38 !s108 1641382318.000000
-Z39 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|C:/Users/luxen/Firewall/Firewall simulation/FIFO.vhd|
-Z40 !s107 C:/Users/luxen/Firewall/Firewall simulation/FIFO.vhd|
+R23
+R24
+R0
+>>>>>>> 5613cd4d21b3765817a6ce6865989f04b2ae7262
 !i113 1
-R13
-R14
+R23
+R24
+R0
 Abehavioral
-R2
 R3
-R4
+R9
+R10
+>>>>>>> 5613cd4d21b3765817a6ce6865989f04b2ae7262
 DEx4 work 4 fifo 0 22 OXU:fje`RdV`TLGle=GTd1
 l40
 L32
 VkJlD^FcPKFMc_8<E0Fd=O3
 !s100 :D4FQn2b?IX`_@jGl@XAQ3
-R8
-32
-R37
-!i10b 1
-R38
-R39
-R40
-!i113 1
-R13
-R14
+R0
+>>>>>>> 5613cd4d21b3765817a6ce6865989f04b2ae7262
+R0
 Artl
-R1
 R2
 R3
-R4
+R9
+R10
 DEx4 work 4 fifo 0 22 9XHNEf[SJ0kbWKZW]6TmL1
 l24
 L18
 V>5VHbESm_4R7g^TI:V>[i2
 !s100 E4l8o[@eJ1S3EHfUChQ:80
-R8
+R14
 32
 !s110 1641309680
 !i10b 1
 !s108 1641309680.000000
-R39
-R40
+>>>>>>> 5613cd4d21b3765817a6ce6865989f04b2ae7262
 !i113 1
-R13
-R14
+R23
+R24
 w1641309651
-Esram
-R33
-R1
-R2
-R3
-R4
-R26
-Z41 8C:/Users/luxen/Firewall/Firewall simulation/SRAM.vhd
-Z42 FC:/Users/luxen/Firewall/Firewall simulation/SRAM.vhd
-l0
-L6
-Vjh7CN@4PK9fY452;JOn123
-!s100 Di`=76FRG`=?d1<nYd]R:0
-R8
-32
-Z43 !s110 1641301972
-!i10b 1
-Z44 !s108 1641301972.000000
-Z45 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|C:/Users/luxen/Firewall/Firewall simulation/SRAM.vhd|
-Z46 !s107 C:/Users/luxen/Firewall/Firewall simulation/SRAM.vhd|
-!i113 1
 R13
-R14
+R12
+R0
+>>>>>>> 5613cd4d21b3765817a6ce6865989f04b2ae7262
+!i113 1
+R23
+R24
+R0
 Asram_arch
-R1
 R2
 R3
-R4
-DEx4 work 4 sram 0 22 jh7CN@4PK9fY452;JOn123
-l22
-L17
-VXejE3ZD7Q5A;mkU@_aMSP0
-!s100 `4CA3iLo4d>81fQ3Z1m9?3
-R8
-32
-R43
-!i10b 1
-R44
-R45
-R46
+R9
+R10
+>>>>>>> 5613cd4d21b3765817a6ce6865989f04b2ae7262
 !i113 1
-R13
-R14
-Etest
-Z47 w1641220163
-R1
-R2
-R3
-R4
-R26
-Z48 8C:/Users/luxen/Firewall/Firewall simulation/test.vhd
-Z49 FC:/Users/luxen/Firewall/Firewall simulation/test.vhd
+R23
+R24
+R0
+>>>>>>> 5613cd4d21b3765817a6ce6865989f04b2ae7262
 l0
 L7
 VoZ?83AVVP;APNZ1Ng@2oV1
 !s100 H_iE_LI<WXC2mLF]P;QEH0
-R8
-32
-R29
-!i10b 1
-R30
-Z50 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|C:/Users/luxen/Firewall/Firewall simulation/test.vhd|
-Z51 !s107 C:/Users/luxen/Firewall/Firewall simulation/test.vhd|
-!i113 1
-R13
 R14
+32
+R0
+>>>>>>> 5613cd4d21b3765817a6ce6865989f04b2ae7262
+!i113 1
+R23
+R24
+R0
 Artl
-R1
 R2
 R3
-R4
+R9
+R10
 DEx4 work 4 test 0 22 oZ?83AVVP;APNZ1Ng@2oV1
 l18
 L15
 VTJL:792KFNdV>oCk1mAGK2
 !s100 S0da6chKd1:>Ij:n2FmHd1
-R8
+R14
 32
-R29
+>>>>>>> 5613cd4d21b3765817a6ce6865989f04b2ae7262
+!i113 1
+R23
+R24
+R0
+Ecollect_header
+Z39 w1641554951
+R2
+R3
+R9
+R10
+R19
+R20
+R21
+l0
+L6
+V1MI45f35go;Cg4RAjT2490
+!s100 H2eojJmWkagLm_B5K6H@i0
+R14
+32
+Z40 !s110 1641554967
 !i10b 1
-R30
+Z41 !s108 1641554966.000000
+Z42 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|C:/Users/Asger/3-ugers/Firewall/Firewall simulation/Collect_Header.vhd|
+Z43 !s107 C:/Users/Asger/3-ugers/Firewall/Firewall simulation/Collect_Header.vhd|
+!i113 1
+R23
+R24
+Acollect_header_arch
+R2
+R3
+R9
+R10
+R25
+l53
+L29
+VZVMU_?zhmJHCdlO<;g7]H2
+!s100 Fh6NX9?>Pj8M`Lh7_gE6f1
+R14
+32
+R40
+!i10b 1
+R41
+R42
+R43
+!i113 1
+R23
+R24
+Ecollect_header_tb
+Z44 w1641554954
+Z45 DPx4 ieee 16 std_logic_textio 0 22 V5TSK`;aJKC<l]CEg1>mz1
+Z46 DPx4 ieee 20 numeric_std_unsigned 0 22 jF^[l6kSe0l<k3W[UC=P83
+R3
+R9
+R10
+R19
+Z47 8C:/Users/Asger/3-ugers/Firewall/Firewall simulation/Collect_Header_TB.vhd
+Z48 FC:/Users/Asger/3-ugers/Firewall/Firewall simulation/Collect_Header_TB.vhd
+l0
+L10
+V_PP_JM32eJUgnVV:8YFY]2
+!s100 HSCR:Jd2bgYSXHlhiH2:@1
+R14
+32
+Z49 !s110 1641554966
+!i10b 1
+R41
+Z50 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|C:/Users/Asger/3-ugers/Firewall/Firewall simulation/Collect_Header_TB.vhd|
+Z51 !s107 C:/Users/Asger/3-ugers/Firewall/Firewall simulation/Collect_Header_TB.vhd|
+!i113 1
+R23
+R24
+Acollect_header_tb_arch
+R45
+R46
+R3
+R9
+R10
+DEx4 work 17 collect_header_tb 0 22 _PP_JM32eJUgnVV:8YFY]2
+l56
+L13
+VhGe><8LdbiHP>?^C^MnlA3
+!s100 0Ra5_N_mj423n9Y3XN4VT2
+R14
+32
+R49
+!i10b 1
+R41
 R50
 R51
 !i113 1
-R13
+R23
+R24
+Ecuckoo_hashing
+Z52 w1641301292
+Z53 DPx4 ieee 15 std_logic_arith 0 22 [G314=:2zXJ`VORJe1J@Z1
+Z54 DPx4 ieee 18 std_logic_unsigned 0 22 ;eZjO2D4ZDz<]0>8AL<ne1
+R2
+R3
+R9
+R10
+R11
+Z55 8C:/Users/luxen/Firewall/Firewall simulation/Cuckoo_Hashing.vhd
+Z56 FC:/Users/luxen/Firewall/Firewall simulation/Cuckoo_Hashing.vhd
+l0
+L7
+VWHR]bW>@g6E40kEMJiDU@0
+!s100 dF0L`7HoU]2gXCkikZ9V62
 R14
+32
+R5
+!i10b 1
+R6
+Z57 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|C:/Users/luxen/Firewall/Firewall simulation/Cuckoo_Hashing.vhd|
+Z58 !s107 C:/Users/luxen/Firewall/Firewall simulation/Cuckoo_Hashing.vhd|
+!i113 1
+R23
+R24
+Acuckoo_hashing_tb
+R53
+R54
+R2
+R3
+R9
+R10
+DEx4 work 14 cuckoo_hashing 0 22 WHR]bW>@g6E40kEMJiDU@0
+l26
+L17
+VdoAUkk1WC<2U0RFb@AHL53
+!s100 cKh60d^joW6mbb`1]9>FZ1
+R14
+32
+R5
+!i10b 1
+R6
+R57
+R58
+!i113 1
+R23
+R24
+Ecuckoo_hashing_tb
+R0
+Efifo
+R0
+Esram
+R0
+Etest
+R0
