@@ -9,7 +9,8 @@ public class WireSharkToInputNew {
         try {
 //            Scanner reader = new Scanner(new File("Data.txt"));
             Scanner reader = new Scanner(new File("C:/Users/Asger/3-ugers/Firewall/Java scripts/oldscripts/Data.txt"));
-            FileWriter writer = new FileWriter(new File("new_input_file.txt"));
+//            FileWriter writer = new FileWriter(new File("new_input_file.txt"));
+            FileWriter writer = new FileWriter(new File("C:/Users/Asger/3-ugers/Firewall/Java scripts/oldscripts/src/new_input_file.txt"));
             String str = "";
             String line = "";
             while (reader.hasNextLine()) {
@@ -18,17 +19,18 @@ public class WireSharkToInputNew {
                     line = reader.nextLine();
                     //System.out.println(line);
                     line = line.substring(2,line.length()-19);
-                    //System.out.println(line);
+                    System.out.println(line);
 
-                    for (int i = 0; i < 13; i++) {
+                    for (int i = 0; i < 14; i++) {
                         str = str + line.substring(0,3)+"0 0\n";
                         line = line.substring(3,line.length());
                     }
 
-                    str = str + line.substring(0,3)+"0 1\n";
-                    line = line.substring(3,line.length());
+                    // str = str + line.substring(0,3)+"0 1\n";
+                    // line = line.substring(3,line.length());
 
-
+                    System.out.println(line);
+                    System.out.println(str);
                     str = str + line.substring(0,3)+"1 0\n";
                     line = line.substring(3,line.length());
                     str = str + line+" 0 0\n";
