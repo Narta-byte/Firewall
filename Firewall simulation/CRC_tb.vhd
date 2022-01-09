@@ -44,7 +44,7 @@ architecture behavior of CRC_tb is
             end loop; 
                 
             REST : for i in 1 to 102 loop 
-                
+                report "Heyhey hey";
             end loop;        
 
 
