@@ -49,7 +49,7 @@ ENTITY minfifo IS
 		wrreq		: IN STD_LOGIC ;
 		empty		: OUT STD_LOGIC ;
 		full		: OUT STD_LOGIC ;
-		q		: OUT STD_LOGIC_VECTOR (9 DOWNTO 0);
+		q			: OUT STD_LOGIC_VECTOR (9 DOWNTO 0);
 		usedw		: OUT STD_LOGIC_VECTOR (7 DOWNTO 0)
 	);
 END minfifo;
@@ -68,14 +68,14 @@ ARCHITECTURE SYN OF minfifo IS
 	GENERIC (
 		add_ram_output_register		: STRING;
 		intended_device_family		: STRING;
-		lpm_numwords		: NATURAL;
-		lpm_showahead		: STRING;
-		lpm_type		: STRING;
-		lpm_width		: NATURAL;
-		lpm_widthu		: NATURAL;
-		overflow_checking		: STRING;
-		underflow_checking		: STRING;
-		use_eab		: STRING
+		lpm_numwords				: NATURAL;
+		lpm_showahead				: STRING;
+		lpm_type					: STRING;
+		lpm_width					: NATURAL;
+		lpm_widthu					: NATURAL;
+		overflow_checking			: STRING;
+		underflow_checking			: STRING;
+		use_eab						: STRING
 	);
 	PORT (
 			clock	: IN STD_LOGIC ;
@@ -84,15 +84,15 @@ ARCHITECTURE SYN OF minfifo IS
 			wrreq	: IN STD_LOGIC ;
 			empty	: OUT STD_LOGIC ;
 			full	: OUT STD_LOGIC ;
-			q	: OUT STD_LOGIC_VECTOR (9 DOWNTO 0);
+			q		: OUT STD_LOGIC_VECTOR (9 DOWNTO 0);
 			usedw	: OUT STD_LOGIC_VECTOR (7 DOWNTO 0)
 	);
 	END COMPONENT;
 
 BEGIN
 	empty    <= sub_wire0;
-	full    <= sub_wire1;
-	q    <= sub_wire2(9 DOWNTO 0);
+	full     <= sub_wire1;
+	q   	 <= sub_wire2(9 DOWNTO 0);
 	usedw    <= sub_wire3(7 DOWNTO 0);
 
 	scfifo_component : scfifo
