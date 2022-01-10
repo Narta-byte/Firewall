@@ -1,8 +1,11 @@
-library ieee;
-use ieee.std_logic_1164.all;
-use ieee.numeric_std.all;
+library IEEE;
+library std;
+use IEEE.std_logic_1164.all;
+use IEEE.numeric_std.all;
+use ieee.std_logic_unsigned.all;
 use std.textio.all;
-use ieee.std_logic_textio.all;
+use STD.textio.all;
+use IEEE.std_logic_textio.all;
 
 entity Cuckoo_Hashing_tb is
 end;
@@ -17,11 +20,17 @@ architecture bench of Cuckoo_Hashing_tb is
       cmd_in : in std_logic_vector(1 downto 0);
       key_in : in std_logic_vector(95 downto 0);
       header_in : in std_logic_vector(95 downto 0);
-      val : in std_logic;
-      rdy : out std_logic;
-      acc_deny_out : out std_logic
+      val_hdr : in std_logic;
+      rdy_hdr : out std_logic;
+      val_in : in std_logic;
+      rdy_out : out std_logic;
+      acc_deny_out : out std_logic;
+      val_ad : in std_logic;
+      rdy_ad : out std_logic
     );
   end component;
+
+
 
   -- Ports
   signal clk : std_logic;
@@ -30,12 +39,18 @@ architecture bench of Cuckoo_Hashing_tb is
   signal cmd_in : std_logic_vector(1 downto 0);
   signal key_in : std_logic_vector(95 downto 0);
   signal header_in : std_logic_vector(95 downto 0);
-  signal val : std_logic;
-  signal rdy : std_logic;
+  signal val_hdr : std_logic;
+  signal rdy_hdr : std_logic;
+  signal val_in : std_logic;
+  signal rdy_out : std_logic;
   signal acc_deny_out : std_logic;
+  signal val_ad : std_logic;
+  signal rdy_ad : std_logic;
+
 
   -- fsm logic
-  type State_type is (setup_rulesearch,set_key,wait_for_ready,send_key,TERMINATE, wipe_memory,wait_for_calc_to_finish);
+  type State_type is (setup_rulesearch,set_key,wait_for_ready_insert,send_key,terminate_insertion, wipe_memory,wait_for_calc_to_finish,
+                      goto_cmd_state, start_hash_matching, send_match_key, wait_for_ready_match);
   signal current_state, next_state : State_type;
 
   signal data_end,done_looping,last_rdy,calc_is_done : std_logic :='0';
@@ -45,20 +60,28 @@ architecture bench of Cuckoo_Hashing_tb is
   type data_array is array (0 to 9) of std_logic_vector(7 downto 0);
   signal data_array_sig : data_array;
 
+  --signals in hashmatching
+  signal match_done : std_logic := '0'; 
 begin
 
-  Cuckoo_Hashing_inst : Cuckoo_Hashing
-    port map (
-      clk => clk,
-      reset => reset,
-      set_rule => set_rule,
-      cmd_in => cmd_in,
-      key_in => key_in,
-      header_in => header_in,
-      val => val,
-      rdy => rdy,
-      acc_deny_out => acc_deny_out
-    );
+    Cuckoo_Hashing_inst : Cuckoo_Hashing
+      port map (
+        clk => clk,
+        reset => reset,
+        set_rule => set_rule,
+        cmd_in => cmd_in,
+        key_in => key_in,
+        header_in => header_in,
+        val_hdr => val_hdr,
+        rdy_hdr => rdy_hdr,
+        val_in => val_in,
+        rdy_out => rdy_out,
+        acc_deny_out => acc_deny_out,
+        val_ad => val_ad,
+        rdy_ad => rdy_ad
+      );
+  
+ 
 
 CLK_PROCESS : process 
 begin
@@ -78,9 +101,9 @@ begin
         end if ;
     end process;  
 
-    --(setup_rulesearch,set_key,wait_for_ready,send_key,TERMINATE);
 
-  NEXT_STATE_LOGIC : process (current_state, done_looping, rdy, val, data_end,calc_is_done)
+  NEXT_STATE_LOGIC : process (current_state, done_looping, rdy_out, val_in, data_end,calc_is_done
+                              rdy_hdr, val_hdr)
   begin    
       case current_state is
         when setup_rulesearch =>
@@ -89,26 +112,42 @@ begin
         when wipe_memory => next_state <= set_key;
 
         when set_key => if done_looping = '1' then
-          next_state <= wait_for_ready;
+          next_state <= wait_for_ready_insert;
         end if ;
 
         next_state <= send_key;
-        when wait_for_ready => if data_end = '1' then
+        when wait_for_ready_insert => if data_end = '1' then
           next_state <= wait_for_calc_to_finish;
-        elsif  rdy = '1' and val = '1'then
+        elsif  rdy_out = '1' and val_in = '1'then
           next_state <= send_key;
         end if ;
         
         when send_key =>
-          next_state <= wait_for_ready;
+          next_state <= wait_for_ready_insert;
         
-        when TERMINATE => 
-          next_state <= TERMINATE;
+        when terminate_insertion => 
+          next_state <= terminate_insertion;
           
-          when wait_for_calc_to_finish => if rdy = '1' then
-            next_state <= TERMINATE;
+         when wait_for_calc_to_finish => if rdy_out = '1' then
+            next_state <= goto_cmd_state;
         end if;
-          when others =>
+
+        when goto_cmd_state => next_state <= start_hash_matching;
+
+        --when start_hash_matching =>
+
+        when send_match_key => 
+          next_state <= wait_for_ready_match;
+        
+
+        when wait_for_ready_match => 
+          if match_done = '1' then
+            next_state <= terminate_insertion;
+          elsif val_hdr then
+            next_state <= send_match_key;
+          end if ;
+          
+        when others =>
           next_state <= setup_rulesearch;
       end case;
   end process;
@@ -141,8 +180,8 @@ begin
 
         done_looping <= '1';
         cmd_in <= "01";
-        val <= '1';
-      when wait_for_ready => 
+        val_in <= '1';
+      when wait_for_ready_insert => 
             
       when send_key =>
           key_in <= "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" & data_array_sig(cnt);
@@ -151,11 +190,19 @@ begin
             data_end <= '1';
             
           end if ;
-      when TERMINATE => 
-              val <= '0';
+      when terminate_insertion => 
+              val_in <= '0';
               cmd_in <= "11";
       when wait_for_calc_to_finish =>
-        
+      
+      when goto_cmd_state => set_rule <= '0';
+
+      when start_hash_matching =>
+
+      when send_match_key =>
+
+      when wait_for_ready_match =>
+      
       when others => report "FAILURE" severity failure;
           
       end case;
