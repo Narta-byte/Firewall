@@ -22,7 +22,6 @@ entity Collect_Header is
     hdr_SoP : out std_logic;
     hdr_EoP :out std_logic
 
-
   );
 end entity;
 
@@ -35,7 +34,7 @@ architecture Collect_Header_arch of Collect_Header is
   signal destaddr : std_logic_vector (31 downto 0) := x"00000000"; --Store destination address her
   signal srcport : std_logic_vector (15 downto 0) := x"0000"; -- fang source ports her
   signal destport : std_logic_vector (15 downto 0) := x"0000"; -- fang destsource ports her
-  signal tothemoon : std_logic_vector (95 downto 0) := x"000000000000000000000000";
+  signal header_data_store : std_logic_vector (95 downto 0) := x"000000000000000000000000";
   
   signal iter : integer := 0;
   
@@ -43,16 +42,26 @@ architecture Collect_Header_arch of Collect_Header is
   signal store1 : std_logic_vector (7 downto 0) := x"00";
   signal store2 : std_logic_vector (7 downto 0) := x"00";
 
-  signal intvld_hdr : std_logic;
+  signal readvld_hdr : std_logic;
   signal forwardSoP : std_logic;
   signal forwardEoP : std_logic;
+
+  signal headerinfo : std_logic;
+
+  signal rhash : std_logic;
+  signal rfifo : std_logic;
+  signal rhdr : std_logic;
+  
+  
+  
+  
 
   -- signal rdy_FIFO : std_logic;
   -- signal rdy_hash : std_logic;
 
 begin
 
-  Collect : process (clk, reset)
+  Collect : process (clk, reset)  
   begin
     if reset = '1' then
       srcaddr <= x"00000000";
@@ -70,6 +79,18 @@ begin
       hdr_SoP <= SoP;
       hdr_EoP <= EoP;
 
+      rhash <= '1';
+      rFIFO <= '1';
+
+
+      if EoP = '1' then
+        vld_hdr <= '0';
+        readvld_hdr <= '0';
+      end if;
+      if SoP = '1' then
+        vld_hdr <= '1';
+        readvld_hdr <= '1';
+      end if;
 
       if SoP = '1' and clk'event then
         iter <= 0;
@@ -77,7 +98,20 @@ begin
         destaddr <= x"00000000";
         srcport <= x"0000";
         destport <= x"0000";
+        headerinfo <= '1';
+        store0 <= x"00";
+        store1 <= x"00";
+        store2 <= x"00";
+        forwardSoP <= '1';
+        else
+          forwardSoP <= '0';
+
       end if;
+        if EoP = '1' then
+        forwardEoP <= '1';
+        else
+          forwardEoP <= '0';
+        end if;
 
       if iter >= 11 and iter <= 14 then -- SRCADDR
         if iter = 11 then
@@ -93,7 +127,6 @@ begin
         srcaddr <= store0 & store1 & store2 & packet_in;
 
       end if; 
-
       
       if iter >= 15 and iter <= 18 then -- DESTADDR
         if iter = 15 then
@@ -123,29 +156,29 @@ begin
         destport <= store0 & packet_in;
       end if;
 
-      if iter = 25 then
-        tothemoon <= srcaddr & destaddr & srcport & destport;
+      if iter = 24 then
+        header_data_store <= srcaddr & destaddr & srcport & destport;
       end if;
 
-      if ready_hash = '1' and intvld_hdr = '1' then 
-        header_data <= tothemoon; 
+
+      if rhash = '1' and readvld_hdr = '1' then -- Send headerdata til cuckooo SKIFT TIL ready_hash!
+        header_data <= header_data_store;
+        headerinfo <= '1';
       else
         header_data <= x"000000000000000000000000";
       end if;
 
-      if ready_FIFO = '1' and intvld_hdr = '1' then
+      if rFIFO = '1' and readvld_hdr = '1' then -- Send SoP, packet og EoP SKIFT TIL ready_FIFO
         if SoP = '1' then
           hdr_SoP <= '1';
         end if;
+      end if;
       packet_forward <= packet_in;
       if EoP = '1' then
-        hdr_EoP <= '1';
-      end if;
-      else
-        packet_forward <= x"00";
-      end if;
+       hdr_EoP <= '1';
+      end if; 
 
-    end if;    
+    end if;  
     
   end process;
   
