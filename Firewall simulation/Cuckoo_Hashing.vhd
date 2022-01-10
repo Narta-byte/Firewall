@@ -155,27 +155,27 @@ begin
 
                     when insert_key =>
                         if hashfun = '0' then
-                            address <=    std_logic_vector(to_unsigned(to_integer(unsigned(insertion_key)) mod 11,96)(5 downto 0)) ;
+                            --address <=    std_logic_vector(to_unsigned(to_integer(unsigned(insertion_key)) mod 11,96)(5 downto 0)) ;
                             RW <= '1';
                             occupied_flag_out <= '1';
                             --hash_out <=std_logic_vector(to_unsigned(to_integer(unsigned(key_in)) mod 11,96)(5 downto 0));
                             hash_out <= "000000";
                             --key_out  <= key_in;
                             key_out <= insertion_key;
-                            flip <= '0'; -- måske et issuee
+                            flip <= '1'; -- måske et issuee
                             -- if hashfun = '1' then
                             --     insertion_key <= old_key;
                             -- elsif hashfun = '0' then
                             --     insertion_key <= key_in;
                             -- end if ;
                         else
-                            address <= std_logic_vector(to_unsigned((to_integer(unsigned(insertion_key))/11 mod 11)+15,96)(5 downto 0)); -- an abritary number
+                            --address <= std_logic_vector(to_unsigned((to_integer(unsigned(insertion_key))/11 mod 11)+15,96)(5 downto 0)); -- an abritary number
                             RW <= '1';
                             occupied_flag_out <= '1';
                             --hash_out <= std_logic_vector(to_unsigned(to_integer(unsigned(key_in))/11 mod 11+15,96)(5 downto 0));
                             hash_out <= "000000";
                             --key_out  <= key_in;
-                            flip <= '0'; -- måske et issuee
+                            flip <= '1'; -- måske et issuee
                             key_out <= insertion_key;
                             -- if hashfun = '1' then
                             --     insertion_key <= old_key;
@@ -196,7 +196,7 @@ begin
                     when lookup_hash2 =>
                         hashfun <= '1';
                         RW <= '0';
-                        address <= std_logic_vector(to_unsigned(to_integer(unsigned(insertion_key))/11 mod 11,96)(5 downto 0));
+                        address <= std_logic_vector(to_unsigned((to_integer(unsigned(insertion_key))/11 mod 11)+15,96)(5 downto 0)); -- plus 15 er lidt sus
                     when is_occupied =>
 
                         

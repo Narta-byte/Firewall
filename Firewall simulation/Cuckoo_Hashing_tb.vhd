@@ -90,10 +90,11 @@ begin
           next_state <= wait_for_ready;
         end if ;
 
-        when wait_for_ready => if rdy = '1' and val = '1' then
-          next_state <= send_key;
-        elsif data_end = '1' then
+        next_state <= send_key;
+        when wait_for_ready => if data_end = '1' then
           next_state <= TERMINATE;
+        elsif  rdy = '1' and val = '1'then
+          next_state <= send_key;
         end if ;
         
         when send_key =>
@@ -141,6 +142,9 @@ begin
       when send_key =>
           key_in <= "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" & data_array_sig(cnt);
           cnt <= cnt+1;
+          if cnt = 9 then
+            data_end <= '1';
+          end if ;
       when TERMINATE => 
           
       when others => report "FAILURE" severity failure;
