@@ -132,13 +132,15 @@ begin
 
     end process;
 
-    OUTPUT_LOGIC : process (current_state, reset, cmd_in)
+    OUTPUT_LOGIC : process (current_state, cmd_in) --har fjernet reset
     begin
 
                 case(current_state) is
-
                     when idle =>
-                        flush_sram <= '0'; 
+                        --reset all nextstate signals
+                        flush_sram <= '0';
+                        insert_flag <= '0';
+
                     case( cmd_in ) is
 
                        when "00" => --flush
@@ -155,39 +157,20 @@ begin
 
                     when insert_key =>
                         if hashfun = '0' then
-                            --address <=    std_logic_vector(to_unsigned(to_integer(unsigned(insertion_key)) mod 11,96)(5 downto 0)) ;
                             RW <= '1';
-                            occupied_flag_out <= '1';
-                            --hash_out <=std_logic_vector(to_unsigned(to_integer(unsigned(key_in)) mod 11,96)(5 downto 0));
-                            hash_out <= "000000";
-                            --key_out  <= key_in;
                             key_out <= insertion_key;
-                            flip <= '1'; -- måske et issuee
-                            -- if hashfun = '1' then
-                            --     insertion_key <= old_key;
-                            -- elsif hashfun = '0' then
-                            --     insertion_key <= key_in;
-                            -- end if ;
-                        else
-                            --address <= std_logic_vector(to_unsigned((to_integer(unsigned(insertion_key))/11 mod 11)+15,96)(5 downto 0)); -- an abritary number
+                            flip <= '1';
+                        elsif hashfun = '1' then
                             RW <= '1';
-                            occupied_flag_out <= '1';
-                            --hash_out <= std_logic_vector(to_unsigned(to_integer(unsigned(key_in))/11 mod 11+15,96)(5 downto 0));
-                            hash_out <= "000000";
-                            --key_out  <= key_in;
-                            flip <= '1'; -- måske et issuee
                             key_out <= insertion_key;
-                            -- if hashfun = '1' then
-                            --     insertion_key <= old_key;
-                            -- elsif hashfun = '0' then
-                            --     insertion_key <= key_in;
-                            -- end if ;
+                            flip <= '1'; 
 
                         end if;
-                    when rdy_key => rdy <= '1'; insertion_key<=key_in;
+                    when rdy_key => 
+                        rdy <= '1'; 
+                        insertion_key<=key_in;
 
                     when lookup_hash1 =>
-                        
                         rdy <= '0';
                         hashfun <= '0';
                         RW <= '0';

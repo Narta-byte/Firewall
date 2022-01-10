@@ -35,10 +35,10 @@ architecture bench of Cuckoo_Hashing_tb is
   signal acc_deny_out : std_logic;
 
   -- fsm logic
-  type State_type is (setup_rulesearch,set_key,wait_for_ready,send_key,TERMINATE, wipe_memory);
+  type State_type is (setup_rulesearch,set_key,wait_for_ready,send_key,TERMINATE, wipe_memory,wait_for_calc_to_finish);
   signal current_state, next_state : State_type;
 
-  signal data_end,done_looping : std_logic :='0';
+  signal data_end,done_looping,last_rdy,calc_is_done : std_logic :='0';
 
   --maybe make theese varibles in output logic  
   signal cnt : integer;
@@ -80,19 +80,21 @@ begin
 
     --(setup_rulesearch,set_key,wait_for_ready,send_key,TERMINATE);
 
-  NEXT_STATE_LOGIC : process (current_state, done_looping, rdy, val, data_end)
+  NEXT_STATE_LOGIC : process (current_state, done_looping, rdy, val, data_end,calc_is_done)
   begin    
       case current_state is
         when setup_rulesearch =>
           next_state <= wipe_memory;
+
         when wipe_memory => next_state <= set_key;
+
         when set_key => if done_looping = '1' then
           next_state <= wait_for_ready;
         end if ;
 
         next_state <= send_key;
         when wait_for_ready => if data_end = '1' then
-          next_state <= TERMINATE;
+          next_state <= wait_for_calc_to_finish;
         elsif  rdy = '1' and val = '1'then
           next_state <= send_key;
         end if ;
@@ -101,9 +103,12 @@ begin
           next_state <= wait_for_ready;
         
         when TERMINATE => 
-          next_state <= setup_rulesearch;
-      
-        when others =>
+          next_state <= TERMINATE;
+          
+          when wait_for_calc_to_finish => if rdy = '1' then
+            next_state <= TERMINATE;
+        end if;
+          when others =>
           next_state <= setup_rulesearch;
       end case;
   end process;
@@ -144,9 +149,13 @@ begin
           cnt <= cnt+1;
           if cnt = 9 then
             data_end <= '1';
+            
           end if ;
       when TERMINATE => 
-          
+              val <= '0';
+              cmd_in <= "11";
+      when wait_for_calc_to_finish =>
+        
       when others => report "FAILURE" severity failure;
           
       end case;
