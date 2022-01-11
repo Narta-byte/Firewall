@@ -25,8 +25,8 @@ architecture bench of Cuckoo_Hashing_tb is
       val_in : in std_logic;
       rdy_out : out std_logic;
       acc_deny_out : out std_logic;
-      val_ad : in std_logic;
-      rdy_ad : out std_logic
+      val_ad : out std_logic;
+      rdy_ad : in std_logic
     );
   end component;
 
@@ -49,8 +49,8 @@ architecture bench of Cuckoo_Hashing_tb is
 
 
   -- fsm logic
-  type State_type is (setup_rulesearch,set_key,wait_for_ready_insert,send_key,terminate_insertion, wipe_memory,wait_for_calc_to_finish,
-                      goto_cmd_state, start_hash_matching, send_match_key, wait_for_ready_match);
+  type State_type is (setup_rulesearch,set_key,wait_for_ready_insert,send_key,terminate_insertion, wipe_memory,wait_for_last_calc_to_finish,
+                      goto_cmd_state, start_hash_matching, send_match_key, wait_for_ready_match,terminate_match);
   signal current_state, next_state : State_type;
 
   signal data_end,done_looping,last_rdy,calc_is_done : std_logic :='0';
@@ -62,6 +62,11 @@ architecture bench of Cuckoo_Hashing_tb is
 
   --signals in hashmatching
   signal match_done : std_logic := '0'; 
+  signal cnt_calc_fin : integer := 0;
+
+  --signals for ac
+  signal ok_cnt,ko_cnt : integer := 0;
+  
 begin
 
     Cuckoo_Hashing_inst : Cuckoo_Hashing
@@ -102,8 +107,8 @@ begin
     end process;  
 
 
-  NEXT_STATE_LOGIC : process (current_state, done_looping, rdy_out, val_in, data_end,calc_is_done
-                              rdy_hdr, val_hdr)
+  NEXT_STATE_LOGIC : process (current_state, done_looping, rdy_out, val_in, data_end,calc_is_done,
+                              rdy_hdr, val_hdr, cnt_calc_fin, rdy_ad)
   begin    
       case current_state is
         when setup_rulesearch =>
@@ -117,7 +122,7 @@ begin
 
         next_state <= send_key;
         when wait_for_ready_insert => if data_end = '1' then
-          next_state <= wait_for_calc_to_finish;
+          next_state <= wait_for_last_calc_to_finish;
         elsif  rdy_out = '1' and val_in = '1'then
           next_state <= send_key;
         end if ;
@@ -126,27 +131,33 @@ begin
           next_state <= wait_for_ready_insert;
         
         when terminate_insertion => 
-          next_state <= terminate_insertion;
-          
-         when wait_for_calc_to_finish => if rdy_out = '1' then
+          if not (cnt_calc_fin = 2) and rdy_out = '1' then
+            cnt_calc_fin <= cnt_calc_fin +1;
+          elsif (cnt_calc_fin = 2)  then
             next_state <= goto_cmd_state;
-        end if;
+          end if;
+          
+         when wait_for_last_calc_to_finish => 
+          if rdy_out = '1' then
+            next_state <= terminate_insertion;
+          end if;
 
         when goto_cmd_state => next_state <= start_hash_matching;
 
-        --when start_hash_matching =>
+        when start_hash_matching => --next_state <= wait_for_ready_match;
+          next_state <= wait_for_ready_match;
+
 
         when send_match_key => 
           next_state <= wait_for_ready_match;
         
-
         when wait_for_ready_match => 
           if match_done = '1' then
-            next_state <= terminate_insertion;
-          elsif val_hdr then
+            next_state <= terminate_match;
+          elsif  (rdy_hdr = '1')  then
             next_state <= send_match_key;
           end if ;
-          
+        when terminate_match => next_state <= terminate_match;
         when others =>
           next_state <= setup_rulesearch;
       end case;
@@ -193,21 +204,43 @@ begin
       when terminate_insertion => 
               val_in <= '0';
               cmd_in <= "11";
-      when wait_for_calc_to_finish =>
+
+      when wait_for_last_calc_to_finish => --val_in <= '0';
       
-      when goto_cmd_state => set_rule <= '0';
+      when goto_cmd_state => 
 
-      when start_hash_matching =>
+      when start_hash_matching => 
+          cmd_in <= "11";
+          cnt <= 0;
+          set_rule <= '0';
+          val_hdr <= '1';
+          rdy_ad <= '1'; --this simulates that the accept deny block is always ready
+          
+          when send_match_key => 
+          
+          header_in <= "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" & data_array_sig(cnt); 
+          cnt <= cnt +1;            
+          if cnt = 9 then
+            match_done <= '1';
+            end if ;
 
-      when send_match_key =>
+          if acc_deny_out = '1' then
+            ok_cnt <= ok_cnt +1;
+          elsif acc_deny_out = '0' then
+            ko_cnt <= ko_cnt +1;
+          end if;
+            
+          when wait_for_ready_match => 
+            --val_hdr<= '1';
+           
+            
 
-      when wait_for_ready_match =>
+      when terminate_match => val_hdr <= '0';
       
       when others => report "FAILURE" severity failure;
           
       end case;
    
   end process;
-
 
  end;

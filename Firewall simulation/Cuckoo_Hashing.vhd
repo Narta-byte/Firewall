@@ -26,8 +26,8 @@ entity Cuckoo_Hashing is
     rdy_out : out std_logic;
 
     acc_deny_out : out std_logic;
-    val_ad : in std_logic;
-    rdy_ad : out std_logic
+    val_ad : out std_logic;
+    rdy_ad : in std_logic
   ) ;
 end Cuckoo_Hashing ;
 
@@ -89,7 +89,8 @@ architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
         end if ;
     end process;
 
-    NEXT_STATE_LOGIC : process (current_state, insert_flag, set_rule, val_in, exits_cuckoo, max, flip,flush_flag, previous_search, exits_matching, val_ad)
+    NEXT_STATE_LOGIC : process (current_state, insert_flag, set_rule, val_in, exits_cuckoo, max, flip,flush_flag, 
+                                previous_search, exits_matching, val_hdr)
     begin
         next_state <= current_state;
                 case(current_state) is
@@ -131,6 +132,7 @@ architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
                     else
                         next_state <= lookup_hash2;
                     end if;
+                    
                     when insert_key => next_state <= rdy_key;
                     
                     when ERROR => next_state <= ERROR;
@@ -147,7 +149,7 @@ architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
                         end if ;
 
                     when AD_communication => 
-                        if val_ad = '1' then
+                        if rdy_ad = '1' then
                             next_state <= hash_matching;
                         end if ;
 
@@ -160,7 +162,6 @@ architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
 
     OUTPUT_LOGIC : process (current_state, cmd_in) --har fjernet reset
     begin
-
                 case(current_state) is
                     when command_state =>
                         --reset all nextstate signals
@@ -168,14 +169,15 @@ architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
                         insert_flag <= '0';
 
                     case( cmd_in ) is
-
                        when "00" => --flush
                            flush_flag <= '1';
                        when "01" => --insert
-                            insert_flag <= '1';
+                           insert_flag <= '1';
                        when "10" => -- delete
                            --TODO
-                       when "11" =>  
+                       when "11" =>  --hash match
+                            insert_flag <= '0';
+                            flush_flag <= '0';
                        when others => --stay in command_state
 
                    end case ;
@@ -193,6 +195,9 @@ architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
                             
                             end if;
                     when rdy_key => 
+                            if not (cmd_in = "01")  then
+                                insert_flag <= '0';
+                            end if ;
                         rdy_out <= '1'; 
                         insertion_key<=key_in;
                         max <= 0;
@@ -228,11 +233,12 @@ architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
 
                     when ERROR =>
                             
-                    when hash_matching => 
+                    when hash_matching =>
+                        acc_deny_out <= '0'; 
                         rdy_hdr <= '1';
                         matching_key <= header_in;
                         previous_search <= '0';
-                        rdy_ad <= '0';
+                        val_ad <= '0';
                     when search_hash1 => 
                         rdy_hdr <= '0';
                         RW <= '0';
@@ -253,8 +259,7 @@ architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
                     end if;
                             
                     when AD_communication => 
-                        rdy_ad <= '1';
-                        
+                        val_ad <= '1';                     
                     
                     when others => report "ERROR IN OUTPUT LOGIC" severity failure;
                     
