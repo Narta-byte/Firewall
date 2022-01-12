@@ -49,7 +49,7 @@ ENTITY minfifo IS
 		wrreq		: IN STD_LOGIC ;
 		empty		: OUT STD_LOGIC ;
 		full		: OUT STD_LOGIC ;
-		q		: OUT STD_LOGIC_VECTOR (9 DOWNTO 0);
+		q			: OUT STD_LOGIC_VECTOR (9 DOWNTO 0);
 		usedw		: OUT STD_LOGIC_VECTOR (7 DOWNTO 0)
 	);
 END minfifo;
@@ -84,7 +84,7 @@ ARCHITECTURE SYN OF minfifo IS
 			wrreq	: IN STD_LOGIC ;
 			empty	: OUT STD_LOGIC ;
 			full	: OUT STD_LOGIC ;
-			q	: OUT STD_LOGIC_VECTOR (9 DOWNTO 0);
+			q		: OUT STD_LOGIC_VECTOR (9 DOWNTO 0);
 			usedw	: OUT STD_LOGIC_VECTOR (7 DOWNTO 0)
 	);
 	END COMPONENT;
