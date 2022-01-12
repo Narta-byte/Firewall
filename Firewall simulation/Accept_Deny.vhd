@@ -13,8 +13,8 @@ entity Accept_Deny is
         out_dat     : out std_logic_vector(7 downto 0);
         out_sop     : out std_logic;
         out_eop     : out std_logic;
-        ok_cnt      : out std_logic;
-        ko_cnt      : out std_logic;
+        ok_cnt      : out std_logic_vector;
+        ko_cnt      : out std_logic_vector;
 
         -- FIFO interface 
         dat_FIFO    : in std_logic_vector(7 downto 0);
@@ -61,7 +61,8 @@ architecture rtl of Accept_Deny is
     -- Test signals 
     signal full_packet : std_logic_vector(9 downto 0);
     signal packet_out  : std_logic_vector(9 downto 0); 
-
+    signal int_ok      : integer; 
+    signal int_ko      : integer;
 
 
 begin
@@ -141,7 +142,7 @@ begin
                             rdy_ad_h <= '0';
                             rdy_ad_f <= '0'; 
                         end if;
-                        ok_cnt <= ok_cnt + 1;
+                        int_ok <= int_ok + 1;
 
                     when deny_and_delete => 
                         if acc_deny = '0' and vld_fifo ='1' then 
@@ -149,9 +150,10 @@ begin
                             rdy_ad_h <= '0';
                             rdy_ad_f <= '0';  
                         end if; 
-                        ko_cnt <= ko_cnt + 1;  
+                        int_ko <= int_ko + 1;  
                     
                     when others => report "ERROR IN OUTPUT LOGIC" severity failure; 
+                    
                 end case;
 
             
@@ -159,8 +161,8 @@ begin
 
         full_packet <= FIFO_sop & dat_FIFO & FIFO_eop;
         packet_out <= q; 
-        ok_cnt <= ok_cnt;
-        ko_cnt <= ko_cnt;
+        ok_cnt <= std_logic_vector(to_signed(int_ok, ok_cnt'length));
+        ko_cnt <= std_logic_vector(to_signed(int_ko, ko_cnt'length));
         
 
 end architecture;

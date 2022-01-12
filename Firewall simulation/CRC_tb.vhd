@@ -13,8 +13,8 @@ end entity;
 
 architecture behavior of CRC_tb is
 
-    signal CRC_out1 : std_logic_vector(7 downto 0);
-    signal CRC_out2 : std_logic_vector(7 downto 0);
+    signal CRC_out1 : std_logic_vector(8 downto 0);
+    signal CRC_out2 : std_logic_vector(8 downto 0);
     signal g1       : std_logic_vector(8 downto 0) := "100101111";
     signal g2	    : std_logic_vector(8 downto 0) := "101001001";
 
@@ -56,8 +56,8 @@ begin
         
     begin
 
-        CRC_out1 <= calc_hash(M => "00000011", g => g1);
-        CRC_out2 <= calc_hash(M => "00000011", g => g2);
+        CRC_out1 <= '0' & calc_hash(x"0AD1ECAA0D21981DE9E201BB",g1);
+        CRC_out2 <= calc_hash(M => x"0AD1ECAA23BAE019F3DD01BB", g => g2) + "100000000";
         wait;
 
     end process;
