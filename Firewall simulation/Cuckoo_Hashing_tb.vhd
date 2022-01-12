@@ -217,10 +217,10 @@ begin
             data_end <= '1';
             
           end if ;
-          DEBUG_LOOP : for i in 0 to 160 loop
-            write(write_line,data_array_sig(i));
-            writeline(output,write_line);
-          end loop ; -- DEBUG_LOOP
+          -- DEBUG_LOOP : for i in 0 to 160 loop
+          --   write(write_line,data_array_sig(i));
+          --   writeline(output,write_line);
+          -- end loop ; -- DEBUG_LOOP
       when terminate_insertion => 
               val_in <= '0';
               cmd_in <= "11";

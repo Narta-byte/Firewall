@@ -10,24 +10,24 @@ entity Accept_Deny is
         
         --rdy_in_ad   : in std_logic;
         --vld_ad      : out std_logic; 
-        out_dat     : out std_logic_vector(7 downto 0);
-        out_sop     : out std_logic;
-        out_eop     : out std_logic;
-        ok_cnt      : out std_logic_vector;
-        ko_cnt      : out std_logic_vector;
 
         -- FIFO interface 
-        dat_FIFO    : in std_logic_vector(7 downto 0);
+        packet_forward_FIFO    : in std_logic_vector(7 downto 0);
         FIFO_sop    : in std_logic;
         FIFO_eop    : in std_logic;
         vld_fifo    : in std_logic;
-        rdy_ad_f    : out std_logic := '1';
 
         -- Cuckoo interface 
         acc_deny    : in std_logic;
         vld_hash    : in std_logic;
-        rdy_ad_h    : out std_logic := '1'
 
+        rdy_ad_h    : out std_logic := '1';
+        rdy_ad_FIFO    : out std_logic := '1';
+        data_firewall     : out std_logic_vector(7 downto 0);
+        out_sop     : out std_logic;
+        out_eop     : out std_logic;
+        ok_cnt      : out std_logic_vector;
+        ko_cnt      : out std_logic_vector
     );
 end entity;
 

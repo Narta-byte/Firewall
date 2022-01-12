@@ -18,16 +18,16 @@ entity Cuckoo_Hashing is
     cmd_in : in std_logic_vector(1 downto 0);
     key_in : in std_logic_vector(95 downto 0);
 
-    header_in : in std_logic_vector(95 downto 0);
-    val_hdr : in std_logic;
-    rdy_hdr : out std_logic;
+    header_data : in std_logic_vector(95 downto 0);
+    vld_hdr : in std_logic;
+    rdy_hash : out std_logic;
 
-    val_in : in std_logic;
-    rdy_out : out std_logic;
+    vld_firewall_hash : in std_logic;
+    rdy_firewall_hash : out std_logic;
 
     acc_deny_out : out std_logic;
-    val_ad : out std_logic;
-    rdy_ad : in std_logic
+    vld_ad_hash : out std_logic;
+    rdy_ad_hash : in std_logic
   ) ;
 end Cuckoo_Hashing ;
 
@@ -127,8 +127,8 @@ architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
         end if ;
     end process;
 
-    NEXT_STATE_LOGIC : process (current_state, insert_flag, set_rule, val_in, exits_cuckoo, max, flip,flush_flag, 
-                                previous_search, exits_matching, val_hdr)
+    NEXT_STATE_LOGIC : process (current_state, insert_flag, set_rule, vld_firewall_hash, exits_cuckoo, max, flip,flush_flag, 
+                                previous_search, exits_matching, vld_hdr)
     begin
         next_state <= current_state;
                 case(current_state) is
@@ -145,7 +145,7 @@ architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
                     when rdy_key =>     
                         if insert_flag ='0' then
                             next_state <= command_state;
-                        elsif val_in ='1' then
+                        elsif vld_firewall_hash ='1' then
                             next_state <= lookup_hash1;
                         end if ;
 
@@ -154,7 +154,7 @@ architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
                     when hash_matching => 
                         if set_rule = '1' then
                             next_state <= command_state;
-                        elsif val_hdr = '1' then
+                        elsif vld_hdr = '1' then
                             next_state <= search_hash1;
                         end if ;
 
@@ -194,7 +194,7 @@ architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
                         end if ;
 
                     when AD_communication => 
-                        if rdy_ad = '1' then
+                        if rdy_ad_hash = '1' then
                             next_state <= hash_matching;
                         end if ;
 
@@ -243,13 +243,13 @@ architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
                             if not (cmd_in = "01")  then
                                 insert_flag <= '0';
                             end if ;
-                        rdy_out <= '1'; 
+                        rdy_firewall_hash <= '1'; 
                         insertion_key<=key_in;
                         max <= 0;
                         eq_key <= '0';
                             
                     when lookup_hash1 =>
-                        rdy_out <= '0';
+                        rdy_firewall_hash <= '0';
                         hashfun <= '0';
                         RW <= '0';
                         --address <= "000"&std_logic_vector(to_unsigned(to_integer(unsigned(insertion_key)) mod 563,96)(5 downto 0));
@@ -282,12 +282,12 @@ architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
                     when ERROR =>
                             
                     when hash_matching =>
-                        rdy_hdr <= '1';
-                        matching_key <= header_in;
+                        rdy_hash <= '1';
+                        matching_key <= header_data;
                         previous_search <= '0';
-                        val_ad <= '0';
+                        vld_ad_hash <= '0';
                     when search_hash1 => 
-                        rdy_hdr <= '0';
+                        rdy_hash <= '0';
                         RW <= '0';
                         --address <= "000"&std_logic_vector(to_unsigned(to_integer(unsigned(matching_key)) mod 563,96)(5 downto 0));
                         address <= '0' & calc_hash(insertion_key,g1);
@@ -311,7 +311,7 @@ architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
                     end if;
                             
                     when AD_communication => 
-                        val_ad <= '1';                     
+                        vld_ad_hash <= '1';                     
                     
                     when others => report "ERROR IN OUTPUT LOGIC" severity failure;
                     
