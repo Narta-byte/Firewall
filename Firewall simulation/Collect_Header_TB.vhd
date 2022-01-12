@@ -1,3 +1,4 @@
+
 library IEEE;
 library std;
 use IEEE.std_logic_1164.all;
@@ -36,14 +37,14 @@ architecture Collect_Header_TB_arch of Collect_Header_TB is
   end component;
 
   -- signal declarations
-  signal clk_TB : std_logic;
-  signal reset_TB : std_logic;
-  signal packet_in_TB : std_logic_vector (7 downto 0);
-  signal SoP_TB : std_logic;
-  signal EoP_TB : std_logic;
-  signal vld_TB : std_logic;
-  signal ready_FIFO_TB : std_logic;
-  signal ready_hash_TB : std_logic;
+  signal clk : std_logic;
+  signal reset : std_logic;
+  signal packet_in : std_logic_vector (7 downto 0);
+  signal SoP : std_logic;
+  signal EoP : std_logic;
+  signal vld : std_logic;
+  signal ready_FIFO : std_logic;
+  signal ready_hash : std_logic;
   
   signal ready_hdr : std_logic;
   signal header_data : std_logic_vector (95 downto 0);
@@ -53,17 +54,26 @@ architecture Collect_Header_TB_arch of Collect_Header_TB is
   signal hdr_SoP : std_logic;
   signal hdr_EoP : std_logic;
 
+  signal doneloop : std_logic;
+  signal bytenm : integer := 0;
+  signal packet_start : std_logic := '0';
+--  signal readvld_hdr : std_logic := '1';
+  
+  -- FSM Logics:
+type State_type is (idle, packet_input, stop_wait);
+signal current_state, next_state : State_type;
+
 begin
 
   DUT : Collect_Header port map(
-    clk_TB,
-    reset_TB,
-    packet_in_TB,
-    SoP_TB,
-    EoP_TB,
-    vld_TB,
-    ready_FIFO_TB,
-    ready_hash_TB,
+    clk,
+    reset,
+    packet_in,
+    SoP,
+    EoP,
+    vld,
+    ready_FIFO,
+    ready_hash,
 
     ready_hdr,
     header_data,
@@ -74,72 +84,118 @@ begin
     hdr_EoP
   );
 
-  Resetten : process
+  -- UNCOMMENT FOR TESTS
+--  vlaiddd : process 
+--  begin
+--    readvld_hdr <= '1'; wait;
+--  end process;
+  TestInputs : process 
   begin
-    reset_TB <= '1'; wait for 1 ns;
-    reset_TB <= '0'; wait;
+    ready_FIFO <= '1'; wait for 1390 ns;
+--    ready_FIFO <= '1'; wait for 10000 ns;
+    ready_FIFO <= '0'; wait for 10 ns;  
+    ready_FIFO <= '1'; wait;
+
   end process;
+
+  Testcuckoo : process
+  begin
+    ready_hash <= '0'; wait for 10 ns;
+    ready_hash <= '1'; wait for 2033 ns;
+    ready_hash <= '0'; wait for 6 ns;
+    ready_hash <= '1'; wait for 2 ns;
+    ready_hash <= '0'; wait for 6 ns;
+    ready_hash <= '1'; wait;
+  end process;
+
+  testvld : process 
+  begin
+    vld <= '1'; wait;
+    
+  end process;
+
 
   Clocken : process
   begin
-    clk_TB <= '1'; wait for 1 ns;
-    clk_TB <= '0'; wait for 1 ns; 
+    clk <= '1'; wait for 1 ns;
+    clk <= '0'; wait for 1 ns; 
   end process;
 
-  -- vld_hdr_test : process
-  -- begin 
-  --   vld_hdr_TB <= '0'; wait for 150 ns;
-  --   vld_hdr_TB <= '1'; wait for 100 ns;
-  --   vld_hdr_TB <= '0'; wait;
-  -- end process;
+  STATE_MEMORY_LOGIC : process (clk, reset)
+  begin
+      if reset = '1' then
+          current_state <= idle;
+      elsif rising_edge(clk) then
+          current_state <= next_state;
+      end if ;
+  end process;  
 
-  -- rdy_hash_test : process 
-  -- begin
-  --   ready_hash_TB <= '0'; wait for 100 ns;
-  --   ready_hash_TB <= '1'; wait for 100 ns;
-  --   ready_hash_TB <= '0'; wait;
-  -- end process;
+  NEXT_STATE_LOGIC : process (current_state, ready_FIFO, ready_hash, vld, SoP, EoP, doneloop)
+  begin
+    case current_state is
+        when idle =>
+        if doneloop = '1' then
+          next_state <= idle;
+      elsif vld = '1' and ready_hash = '1' and ready_FIFO = '1' then --and SoP = '1' then
+            next_state <= packet_input;
+        end if;
+            
+        when packet_input =>
+        if doneloop = '1' then
+          next_state <= idle;
+        elsif ready_FIFO = '0' or ready_hash = '0' or vld = '0' then
+          next_state <= stop_wait;          
+        elsif ready_FIFO = '1' and ready_hash = '1' and vld = '1' then
+          next_state <= packet_input;
+        end if;
 
-  -- rdy_FIFO_test : process
-  -- begin
-  --   ready_FIFO_TB <= '0'; wait for 100 ns;
-  --   ready_FIFO_TB <= '1'; wait for 100 ns;
-  --   ready_FIFO_TB <= '0'; wait;
-  -- end process;
+        when stop_wait =>
+          if ready_FIFO = '0' or ready_hash = '0' or vld = '0' then
+            next_state <= stop_wait;
+          elsif ready_FIFO = '1' and ready_hash = '1' and vld = '1' then
+            next_state <= packet_input;            
+        end if;
+        when others => next_state <= idle;
+    end case;  
+  end process;
 
-
-  indput : process (clk_TB, reset_TB)
-
-  file Fin : TEXT open READ_MODE is "Input_packet.txt"; 
-
-    variable current_read_line	: line;
-    variable current_read_field	: std_logic_vector (7 downto 0);
-    variable current_write_line 	: std_logic;
+OUTPUT_LOGIC : process (clk)
+    file input : TEXT open READ_MODE is "Input_packet.txt"; 
+    
+    variable current_read_line  : line;
+    variable current_read_field : std_logic_vector (7 downto 0);
+    variable current_write_line : std_logic;
     variable start_of_data_Reader : std_logic;
 
-  begin
-    if reset_TB = '1' then
-      -- set all to 0
-      packet_in_tB <= x"00";
-      SoP_TB <= '0';
-      EoP_TB <= '0';
-      vld_TB <= '0';
-      --ready_FIFO_TB <= '0';
-      --ready_hash_TB <= '0'; 
-
-       elsif (Rising_edge(clk_TB) and (not (endfile(Fin)))) then 
-      
-      readline(Fin, current_read_line);
-      hread(current_read_line, current_read_field);
-      packet_in_TB <= current_read_field;
+begin
+    if Rising_Edge(clk) then
+    case current_state is
+        when idle =>
+            -- Do nothing
+        
+        when packet_input =>
+        if not (endfile(input)) then 
+          packet_start <= '1';
+            bytenm <= bytenm + 1;
+            readline(input, current_read_line);
+            hread(current_read_line, current_read_field); 
+            packet_in <= current_read_field;
     
-      read(current_read_line, current_write_line); 
-      SoP_TB <= current_write_line;
-      
-      read(current_read_line, current_write_line);
-      EoP_TB <= current_write_line; 
+            read(current_read_line, current_write_line); 
+            SoP <= current_write_line;
+        
+            read(current_read_line, current_write_line);
+            EoP <= current_write_line;
+        else
+          doneloop <= '1';
+        end if;
 
-      end if;
+        when stop_wait =>
+          -- wait for recieving packets again
 
-  end process;
-end architecture;
+        when others => report "FAILURE" severity failure;
+
+        end case;
+    end if;
+    end process;
+end;
