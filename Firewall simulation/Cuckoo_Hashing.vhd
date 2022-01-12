@@ -65,6 +65,8 @@ architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
       
       signal insertion_key : std_logic_vector(95 downto 0);
       
+      --debug
+      signal DEBUG_OK_CNT, DEBUG_KO_CNT : integer:=0;
       
       begin
 
@@ -95,18 +97,22 @@ architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
         next_state <= current_state;
                 case(current_state) is
 
-                    when command_state => if flush_flag = '1' then
-                        next_state <= flush_memory;
-                    elsif insert_flag ='1' then
-                        next_state <= rdy_key;
-                    elsif set_rule = '0' then
-                        next_state <= hash_matching;
-                    end if ;
-                    when rdy_key => if insert_flag ='0' then
-                        next_state <= command_state;
-                    elsif val_in ='1' then
-                        next_state <= lookup_hash1;
-                    end if ;
+                    when command_state => 
+                        if flush_flag = '1' then
+                            next_state <= flush_memory;
+                        elsif insert_flag ='1' then
+                            next_state <= rdy_key;
+                        elsif set_rule = '0' then
+                            next_state <= hash_matching;
+                        end if ;
+
+                    when rdy_key =>     
+                        if insert_flag ='0' then
+                            next_state <= command_state;
+                        elsif val_in ='1' then
+                            next_state <= lookup_hash1;
+                        end if ;
+
                     when flush_memory => next_state <=command_state;
                         
                     when hash_matching => 
@@ -234,7 +240,6 @@ architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
                     when ERROR =>
                             
                     when hash_matching =>
-                        acc_deny_out <= '0'; 
                         rdy_hdr <= '1';
                         matching_key <= header_in;
                         previous_search <= '0';
@@ -253,9 +258,13 @@ architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
                     if data_out(95 downto 0) = matching_key then
                         exits_matching <= '1';
                         acc_deny_out <= '1';
+                        DEBUG_KO_CNT <= DEBUG_KO_CNT +1; 
                     else
+                        if previous_search = '1' then
+                            DEBUG_OK_CNT <= DEBUG_OK_CNT+1;
+                            acc_deny_out <= '0';
+                        end if ;
                         exits_matching <= '0';
-                        acc_deny_out <= '0';
                     end if;
                             
                     when AD_communication => 
