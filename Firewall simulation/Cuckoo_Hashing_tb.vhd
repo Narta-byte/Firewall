@@ -58,7 +58,7 @@ architecture bench of Cuckoo_Hashing_tb is
 
   --maybe make theese varibles in output logic  
   signal cnt : integer;
-  type data_array is array (0 to 9) of std_logic_vector(7 downto 0);
+  type data_array is array (0 to 160) of std_logic_vector(95 downto 0);
   signal data_array_sig : data_array;
 
   --signals in hashmatching
@@ -178,10 +178,12 @@ begin
   end process;
 
   OUTPUT_LOGIC : process (current_state)
-  file input : TEXT open READ_MODE is "cuckoo_hash testdata.txt";
+  file input : TEXT open READ_MODE is "big_data_input_file.txt";
   variable current_read_line : line;
-  variable hex_reader : std_logic_vector(7 downto 0);
+  variable hex_reader : std_logic_vector(95 downto 0);
   
+  file output : text open WRITE_MODE is "DEBUG_OUTPUT.txt";
+  variable write_line : line;
   begin     
       case current_state is
       when setup_rulesearch => 
@@ -191,17 +193,17 @@ begin
       when wipe_memory => cmd_in <= "00";
       when set_key =>
        
-          READ_ARRAY : for i in 0 to 9 loop
+          READ_ARRAY : for i in 0 to 160 loop
             if not ENDFILE(input) then
               
               readline(input, current_read_line);
-              HREAD(current_read_line, hex_reader);
+              READ(current_read_line, hex_reader);
               
               data_array_sig(i) <= hex_reader;
               end if ;
           
           end loop ; -- READ_ARRAY
-
+          
 
         done_looping <= '1';
         cmd_in <= "01";
@@ -209,12 +211,16 @@ begin
       when wait_for_ready_insert => 
             
       when send_key =>
-          key_in <= "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" & data_array_sig(cnt);
+          key_in <= data_array_sig(cnt);
           cnt <= cnt+1;
-          if cnt = 9 then
+          if cnt = 160 then
             data_end <= '1';
             
           end if ;
+          DEBUG_LOOP : for i in 0 to 160 loop
+            write(write_line,data_array_sig(i));
+            writeline(output,write_line);
+          end loop ; -- DEBUG_LOOP
       when terminate_insertion => 
               val_in <= '0';
               cmd_in <= "11";
@@ -233,9 +239,9 @@ begin
          
           
       when send_match_key => 
-          header_in <= "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" & data_array_sig(cnt); 
+          header_in <=  data_array_sig(cnt); 
           cnt <= cnt +1;            
-          if cnt = 9 then
+          if cnt = 160 then
             match_done <= '1';
           end if ;
 

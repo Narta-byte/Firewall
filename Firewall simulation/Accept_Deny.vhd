@@ -122,22 +122,25 @@ begin
                 case(current_state) is 
 
                     when wait_hash =>
-                        if vld_hash = '0' then 
-                            rdy_ad_f <= '0';
-                        elsif vld_hash = '1' then
-                            rdy_ad_f<= '1';
-                        end if;
+                        -- if vld_hash = '0' then 
+                        --     rdy_ad_f <= '0';
+                        -- elsif vld_hash = '1' then
+                        --     rdy_ad_f<= '1';
+                        -- end if;
+                        rdy_ad_h <= '1';
 
                     when get_packet =>
-                        if full = '1' and empty = '0' then 
+                        if (full = '1') and (vld_fifo= '1') then 
                             full_packet <= q;
-                            rdy_ad_h <= '0';
-                        elsif full = '0' and empty = '1' then 
+                            --rdy_ad_h <= '0';
+                        elsif  empty = '0' and (vld_fifo= '1') then 
                             report "FALIURE" severity failure; 
                         end if; 
+                        rdy_ad_h <= '0';
+                        rdy_ad_f <= '1';
 
                     when accept_and_forward => 
-                        if acc_deny = '1' and vld_fifo = '1' then 
+                        if acc_deny = '1'  then 
                             packet_out <= q;
                             rdy_ad_h <= '0';
                             rdy_ad_f <= '0'; 
@@ -145,8 +148,8 @@ begin
                         int_ok <= int_ok + 1;
 
                     when deny_and_delete => 
-                        if acc_deny = '0' and vld_fifo ='1' then 
-                            packet_out <= (others => '0'); 
+                        if acc_deny = '0' then 
+                            packet_out <= (others => '0'); --"00000000" 
                             rdy_ad_h <= '0';
                             rdy_ad_f <= '0';  
                         end if; 
@@ -159,7 +162,7 @@ begin
             
         end process;
 
-        full_packet <= FIFO_sop & dat_FIFO & FIFO_eop;
+        full_packet <=  dat_FIFO & FIFO_sop  & FIFO_eop;
         packet_out <= q; 
         ok_cnt <= std_logic_vector(to_signed(int_ok, ok_cnt'length));
         ko_cnt <= std_logic_vector(to_signed(int_ko, ko_cnt'length));
