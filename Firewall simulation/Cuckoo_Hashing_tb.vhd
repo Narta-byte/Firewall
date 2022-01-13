@@ -28,7 +28,7 @@ architecture bench of Cuckoo_Hashing_tb is
       rdy_hash : out std_logic;
       vld_firewall_hash : in std_logic;
       rdy_firewall_hash : out std_logic;
-      acc_deny_out : out std_logic;
+      acc_deny_hash : out std_logic;
       vld_ad_hash : out std_logic;
       rdy_ad_hash : in std_logic
     );
@@ -47,7 +47,7 @@ architecture bench of Cuckoo_Hashing_tb is
   signal rdy_hash : std_logic;
   signal vld_firewall_hash : std_logic;
   signal rdy_firewall_hash : std_logic;
-  signal acc_deny_out : std_logic;
+  signal acc_deny_hash : std_logic;
   signal vld_ad_hash : std_logic;
   signal rdy_ad_hash : std_logic;
 
@@ -87,7 +87,7 @@ begin
     rdy_hash => rdy_hash,
     vld_firewall_hash => vld_firewall_hash,
     rdy_firewall_hash => rdy_firewall_hash,
-    acc_deny_out => acc_deny_out,
+    acc_deny_hash => acc_deny_hash,
     vld_ad_hash => vld_ad_hash,
     rdy_ad_hash => rdy_ad_hash
   );
@@ -254,9 +254,9 @@ begin
       when wait_for_ready_match => 
             --vld_hdr<= '1';
             set_rule <= '0';
-          if acc_deny_out = '1' then
+          if acc_deny_hash = '1' then
               ok_cnt <= ok_cnt +1;
-          elsif acc_deny_out = '0' then
+          elsif acc_deny_hash = '0' then
               ko_cnt <= ko_cnt +1;
           end if;
             

@@ -17,7 +17,7 @@ architecture behavior of CRC_tb is
     signal CRC_out2 : std_logic_vector(8 downto 0);
     signal g1       : std_logic_vector(8 downto 0) := "100101111";
     signal g2	    : std_logic_vector(8 downto 0) := "101001001";
-
+    signal clk : std_logic;
     function calc_hash (M : std_logic_vector; g : std_logic_vector)
         return std_logic_vector is
 
@@ -51,14 +51,20 @@ architecture behavior of CRC_tb is
                  
  
 begin
-
-    CHECK : process
+    CLOCK : process 
+	 begin
+    clk <= '1';
+    wait for 10 ns;
+    clk <= '0';
+    wait for 10 ns;
+    end process;
+    CHECK : process (clk)
         
     begin
-
+	if rising_edge(clk) then
         CRC_out1 <= '0' & calc_hash(x"0AD1ECAA0D21981DE9E201BB",g1);
         CRC_out2 <= calc_hash(M => x"0AD1ECAA23BAE019F3DD01BB", g => g2) + "100000000";
-        wait;
+        end if;
 
     end process;
  

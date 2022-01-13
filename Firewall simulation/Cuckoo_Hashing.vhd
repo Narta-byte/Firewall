@@ -25,7 +25,7 @@ entity Cuckoo_Hashing is
     vld_firewall_hash : in std_logic;
     rdy_firewall_hash : out std_logic;
 
-    acc_deny_out : out std_logic;
+    acc_deny_hash : out std_logic;
     vld_ad_hash : out std_logic;
     rdy_ad_hash : in std_logic
   ) ;
@@ -300,12 +300,12 @@ architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
                     when matching => 
                     if data_out(95 downto 0) = matching_key then
                         exits_matching <= '1';
-                        acc_deny_out <= '1';
+                        acc_deny_hash <= '1';
                         DEBUG_KO_CNT <= DEBUG_KO_CNT +1; 
                     else
                         if previous_search = '1' then
                             DEBUG_OK_CNT <= DEBUG_OK_CNT+1;
-                            acc_deny_out <= '0';
+                            acc_deny_hash <= '0';
                         end if ;
                         exits_matching <= '0';
                     end if;

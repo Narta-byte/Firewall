@@ -1,6 +1,7 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
+use std.textio.all;
 
 entity firewall is
 end entity;
@@ -11,15 +12,16 @@ architecture firewall_arch of firewall is
       port (
       clk : in std_logic;
       reset : in std_logic;
-      packet_in : in std_logic_vector (7 downto 0);
+      packet_in : in std_logic_vector (9 downto 0);
       SoP : in std_logic;
       EoP : in std_logic;
       vld_firewall : in std_logic;
       rdy_FIFO : in std_logic;
       rdy_hash : in std_logic;
+      
       rdy_collecthdr : out std_logic;
       header_data : out std_logic_vector (95 downto 0);
-      packet_forward : out std_logic_vector (7 downto 0);
+      packet_forward : out std_logic_vector (9 downto 0);
       vld_hdr : out std_logic;
       hdr_SoP : out std_logic;
       hdr_EoP : out std_logic
@@ -38,7 +40,7 @@ architecture firewall_arch of firewall is
   rdy_hash : out std_logic;
   vld_firewall_hash : in std_logic;
   rdy_firewall_hash : out std_logic;
-  acc_deny_out : out std_logic;
+  acc_deny_hash : out std_logic;
   vld_ad_hash : out std_logic;
   rdy_ad_hash : in std_logic
 );
@@ -57,51 +59,132 @@ component minfifo
     );
   end component;
 
-  -- Clock period
+  component Accept_Deny
+          port (
+          clk : in std_logic; --yes
+          reset : in std_logic; --yes
+          packet_forward_FIFO : in std_logic_vector(9 downto 0); --yes
+          --FIFO_sop : in std_logic; 
+          --FIFO_eop : in std_logic; 
+          vld_fifo : in std_logic; --yes
+          acc_deny : in std_logic; --yes
+          vld_ad_hash : in std_logic; --yes
+          rdy_ad_hash : out std_logic; --yes
+          rdy_ad_FIFO : out std_logic; -- micheal hjælp
+          data_firewall : out std_logic_vector(9 downto 0); --yes
+          --out_sop : out std_logic; 
+          --out_eop : out std_logic;
+          ok_cnt : out std_logic_vector(8 downto 0); --yes ændres måske senere
+          ko_cnt : out std_logic_vector(8 downto 0) --yes ændres måske senere
+        );
+      end component;
+
+ 
+ 
+      -- Clock period
   constant clk_period : time := 5 ns;
   -- Generics
 
   -- Ports for Collect_header
-  signal clk : std_logic;
-  signal reset : std_logic;
-  signal packet_in : std_logic_vector (7 downto 0);
-  signal SoP : std_logic;
-  signal EoP : std_logic;
-  signal vld_firewall : std_logic;
-  signal rdy_FIFO : std_logic;
-  signal rdy_hash : std_logic;
-  signal rdy_collecthdr : std_logic;
-  signal header_data : std_logic_vector (95 downto 0);
-  signal packet_forward : std_logic_vector (7 downto 0);
-  signal vld_hdr : std_logic;
-  signal hdr_SoP : std_logic;
-  signal hdr_EoP : std_logic;
+  signal clk : std_logic := '0';
+  signal reset : std_logic := '0';
+  signal packet_in : std_logic_vector (9 downto 0) := "0000000000";
+  signal SoP : std_logic := '0';
+  signal EoP : std_logic := '0';
+  signal vld_firewall : std_logic := '0';
+  signal rdy_FIFO : std_logic := '0';
+  signal rdy_hash : std_logic := '0';
+  signal rdy_collecthdr : std_logic := '0';
+  signal header_data : std_logic_vector (95 downto 0) := x"000000000000000000000000";
+  signal packet_forward : std_logic_vector (9 downto 0) := "0000000000";
+  signal vld_hdr : std_logic := '0';
+  signal hdr_SoP : std_logic := '0';
+  signal hdr_EoP : std_logic := '0';
 
   --cuckoo
   
-  signal set_rule : std_logic;
-  signal cmd_in : std_logic_vector(1 downto 0);
-  signal key_in : std_logic_vector(95 downto 0);
-  signal header_in : std_logic_vector(95 downto 0);
+  signal set_rule : std_logic := '0';
+  signal cmd_in : std_logic_vector(1 downto 0) := "00";
+  signal key_in : std_logic_vector(95 downto 0) := x"000000000000000000000000";
+  signal header_in : std_logic_vector(95 downto 0) := x"000000000000000000000000";
   --signal vld_hdr : std_logic;
   --signal rdy_hash : std_logic;
-  signal vld_firewall_hash : std_logic;
-  signal rdy_firewall_hash : std_logic;
-  signal acc_deny_out : std_logic;
-  signal vld_ad_hash : std_logic;
-  signal rdy_ad_hash : std_logic;
+  signal vld_firewall_hash : std_logic := '0';
+  signal rdy_firewall_hash : std_logic := '0';
+  signal acc_deny_hash : std_logic := '0';
+  signal vld_ad_hash : std_logic := '0';
+  signal rdy_ad_hash : std_logic := '0';
 
-  signal clock : STD_LOGIC;
-  signal data : STD_LOGIC_VECTOR (9 DOWNTO 0);
-  signal rdreq : STD_LOGIC;
-  signal wrreq : STD_LOGIC;
-  signal empty : STD_LOGIC;
-  signal full : STD_LOGIC;
-  signal q : STD_LOGIC_VECTOR (9 DOWNTO 0);
-  signal usedw : STD_LOGIC_VECTOR (7 DOWNTO 0);
+  --fifo
+  --signal clk : STD_LOGIC;
+  signal data : STD_LOGIC_VECTOR (9 DOWNTO 0) := x"00";
+  signal rdreq : STD_LOGIC := '0';
+  signal wrreq : STD_LOGIC := '0';
+  signal empty : STD_LOGIC := '0';
+  signal full : STD_LOGIC := '0';
+  signal q : STD_LOGIC_VECTOR (9 DOWNTO 0) := "0000000000";
+  signal usedw : STD_LOGIC_VECTOR (7 DOWNTO 0); -- 8?
 
 
+  --accept deny
+  --signal clk : std_logic;
+  --signal reset : std_logic;
+  signal packet_forward_FIFO : std_logic_vector(9 downto 0) := "0000000000";
+  --signal FIFO_sop : std_logic;
+  --signal FIFO_eop : std_logic;
+  signal vld_fifo : std_logic; -- micheal hjælp
+  --signal acc_deny_hash : std_logic; 
+  --signal vld_ad_hash : std_logic; 
+  --signal rdy_ad_hash : std_logic;
+  signal rdy_ad_FIFO : std_logic; -- micheal hjælp
+  signal data_firewall : std_logic_vector(9 downto 0) := "0000000000";
+  signal ok_cnt : std_logic_vector(8 downto 0) := "000000000";
+  signal ko_cnt : std_logic_vector(8 downto 0) := "000000000";
+
+    -- cuckoo hash tb copy paste
+  type State_type is (setup_rulesearch,
+                      set_keys_and_read_input_packets,wait_for_ready_insert,
+                      send_key,terminate_insertion,
+                      wait_for_last_calc_to_finish,
+                      goto_cmd_state,
+                      start_byte_stream,
+                      pause_byte_stream,
+                      comince_byte_stream_to_accept,
+                      pause_byte_stream_to_accept,
+                      comince_byte_stream,
+
+                      terminate_match,
+                      test_a_wrong_header,
+                      wait_for_bytestream_to_fin
+                        );
+  signal current_state, next_state : State_type;
+
+  signal data_end,done_looping,last_rdy,calc_is_done : std_logic :='0';
+
+  --output logic signals 
+  signal cnt : integer;
+  type data_array is array (0 to 160) of std_logic_vector(95 downto 0);
+  signal data_array_sig : data_array;
+
+  --signals in hashmatching
+  signal byte_stream_done : std_logic := '0'; 
+  signal cnt_calc_fin : integer := 0;
+
+  --signals in byte stream
+
+  signal doneloop : std_logic;
+  signal bytenm : integer := 0;
+  signal packet_start : std_logic := '0';
+  signal hex12 : std_logic_vector (7 downto 0);
+  --signal h2 : std_logic_vector (3 downto 0);
+  signal bits1 : std_logic_vector (0 downto 0);
+  signal bits2 : std_logic_vector (0 downto 0);
+  signal packet_data : std_logic_vector(7 downto 0);
+  
+  --signals for ac
+  
 begin
+  
   CLOCK : process 
   begin
       clk <= '1';
@@ -141,14 +224,14 @@ begin
       rdy_hash => rdy_hash, --yes
       vld_firewall_hash => vld_firewall_hash, --yes
       rdy_firewall_hash => rdy_firewall_hash, --yes
-      acc_deny_out => acc_deny_out, --kan ikke implementeres pt
+      acc_deny_hash => acc_deny_hash, --kan ikke implementeres pt
       vld_ad_hash => vld_ad_hash, 
       rdy_ad_hash => rdy_ad_hash
     );
   
     minfifo_inst : minfifo
     port map (
-      clock => clock,
+      clk => clk,
       data => data,
       rdreq => rdreq,
       wrreq => wrreq,
@@ -159,10 +242,231 @@ begin
     );
 
     --
+    Accept_Deny_inst : Accept_Deny
+        port map (
+          clk => clk,
+          reset => reset,
+          packet_forward_FIFO => packet_forward_FIFO,
+          --FIFO_sop => FIFO_sop,
+          --FIFO_eop => FIFO_eop,
+          vld_fifo => vld_fifo,
+          acc_deny_hash => acc_deny_hash,
+          vld_ad_hash => vld_ad_hash,
+          rdy_ad_hash => rdy_ad_hash,
+          rdy_ad_FIFO => rdy_ad_FIFO,
+          data_firewall => data_firewall,
+          --out_sop => out_sop,
+          --out_eop => out_eop,
+          ok_cnt => ok_cnt,
+          ko_cnt => ko_cnt
+        );
     
+     STATE_MEMORY_LOGIC : process (clk, reset)
+    begin
+        if reset = '1' then
+            current_state <= setup_rulesearch;
+        elsif rising_edge(clk) then
+            current_state <= next_state;
+        end if ;
+    end process;  
     
-    end; 
+    NEXT_STATE_LOGIC : process (current_state, done_looping, 
+                              rdy_firewall_hash, vld_firewall_hash, 
+                              data_end,calc_is_done,
+                              rdy_hash,
+                              vld_hdr, cnt_calc_fin,
+                              rdy_ad_hash)
+  begin
+    next_state <= current_state; -- måske sus
+      case current_state is
+        when setup_rulesearch =>
+          next_state <= set_keys_and_read_input_packets;
 
+       
+
+        when set_keys_and_read_input_packets => if done_looping = '1' then
+          next_state <= wait_for_ready_insert;
+        end if ;
+
+        next_state <= send_key;
+        when wait_for_ready_insert => if data_end = '1' then
+          next_state <= wait_for_last_calc_to_finish;
+        elsif  rdy_firewall_hash = '1' and vld_firewall_hash = '1'then
+          next_state <= send_key;
+        end if ;
+        
+        when send_key =>
+          next_state <= wait_for_ready_insert;
+        
+        when terminate_insertion => 
+          if not (cnt_calc_fin = 2) and rdy_firewall_hash = '1' then
+            cnt_calc_fin <= cnt_calc_fin +1;
+          elsif (cnt_calc_fin = 2)  then
+            next_state <= goto_cmd_state;
+          end if;
+          
+         when wait_for_last_calc_to_finish => 
+          if rdy_firewall_hash = '1' then
+            next_state <= terminate_insertion;
+          end if;
+
+        when goto_cmd_state => next_state <= start_byte_stream;
+
+        when start_byte_stream => --next_state <= pause_byte_stream;
+          next_state <= comince_byte_stream;
+
+
+        when comince_byte_stream => 
+        --     if byte_stream_done = '1' then
+        --         next_state <= terminate_match;
+        --     elsif vld_firewall = '0' then
+        --         next_state <= pause_byte_stream;
+        --     end if ;
+        
+        if doneloop = '1' then
+            next_state <= terminate_match;
+          elsif rdy_FIFO = '0' or rdy_hash = '0' or vld_firewall = '0' then
+            next_state <= pause_byte_stream;          
+          elsif rdy_FIFO = '1' and rdy_hash = '1' and vld_firewall = '1' then
+            next_state <= comince_byte_stream;
+          end if;
+        
+        when pause_byte_stream => 
+        --   if byte_stream_done = '1' then
+        --     next_state <= terminate_match;
+        --   elsif  (vld_firewall = '1')  then
+        --     --next_st;
+        --   end if ;
+
+        if rdy_FIFO = '0' or rdy_hash = '0' or vld_firewall = '0' then
+            next_state <= terminate_match;
+          elsif rdy_FIFO = '1' and rdy_hash = '1' and vld_firewall = '1' then
+            next_state <= comince_byte_stream;
+        end if;
+        
+
+        when terminate_match => next_state <= terminate_match;        
+        
+        when others =>
+          next_state <= setup_rulesearch;
+      end case;
+  end process;
+
+  OUTPUT_LOGIC : process (current_state)
+  file input : TEXT open READ_MODE is "keys_to_be_programmed.txt";
+  variable current_read_line_keys : line;
+  variable std_logic_vector_reader : std_logic_vector(95 downto 0);
+  
+  file input_packet : TEXT open READ_MODE is "Input_packet.txt"; 
+  variable current_read_line	: line;
+  variable current_read_field	: std_logic_vector (7 downto 0);
+  variable current_write_line : std_logic_vector (0 downto 0);
+  variable start_of_data_Reader : std_logic;
+
+  
+  file output : text open WRITE_MODE is "DEBUG_OUTPUT.txt";
+  variable write_line : line;
+  begin     
+      case current_state is
+      when setup_rulesearch => 
+        set_rule <= '1';
+	      cnt <= 0;
+      
+      when set_keys_and_read_input_packets =>
+       
+          READ_ARRAY : for i in 0 to 160 loop
+            if not ENDFILE(input) then
+              
+              readline(input, current_read_line_keys);
+              READ(current_read_line_keys, std_logic_vector_reader);
+              
+              data_array_sig(i) <= std_logic_vector_reader;
+              end if ;
+          
+          end loop ; -- READ_ARRAY
+
+        done_looping <= '1';
+        cmd_in <= "01";
+        vld_firewall_hash <= '1';
+
+      when wait_for_ready_insert => 
+            
+      when send_key =>
+          key_in <= data_array_sig(cnt);
+          cnt <= cnt+1;
+          if cnt = 160 then
+            data_end <= '1';
+            
+          end if ;
+         
+      when terminate_insertion => 
+              vld_firewall_hash <= '0';
+              cmd_in <= "11";
+
+      when wait_for_last_calc_to_finish => --vld_firewall_hash <= '0';
+      
+      when goto_cmd_state => 
+
+      when start_byte_stream => 
+          cmd_in <= "11";
+          cnt <= 0;
+          vld_hdr <= '1';
+          rdy_ad_hash <= '1'; --this simulates that the accept deny block is always ready
+          --header_data <= "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" & data_array_sig(cnt); 
+          
+      when comince_byte_stream => --packet_input 
+      if not (endfile(input_packet)) then -- Skal vi lave tilhørende signaler her? Eller kan vi bruge fra collectheader_TB på en en måde?
+        packet_start <= '1';
+        bytenm <= bytenm + 1;
+        readline(input_packet, current_read_line);
+        hread(current_read_line, current_read_field);
+        hex12 <= current_read_field;
+
+        read(current_read_line, current_write_line);
+        bits1 <= current_write_line;
+        if bits1 = "1" then
+          SoP <= '1';
+        else
+          SoP <= '0';
+        end if;
+        
+        read(current_read_line, current_write_line);
+        bits2<= current_write_line;
+        if bits2 = "1" then
+          EoP <= '1';
+        else
+          EoP <= '0';
+        end if;
+
+        packet_in <= hex12 & bits1 & bits2; 
+        packet_data <= hex12;
+    else
+      doneloop <= '1';
+    end if;
+
+      when pause_byte_stream =>             
+
+      when terminate_match => vld_hdr <= '0';
+
+      when test_a_wrong_header => 
+        header_data <= "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" & "00011111";
+
+      when wait_for_bytestream_to_fin => 
+      
+
+      when others => report "FAILURE" severity failure;
+          
+      end case;
+   
+  end process;
+
+
+
+    end; 
+    
+ 
+      
+    
 
 
     -- //                 .
