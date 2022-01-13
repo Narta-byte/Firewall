@@ -102,7 +102,7 @@ component minfifo
 
 
 begin
-  CLOCK : process 
+  Clocken : process 
   begin
       clk <= '1';
       wait for 10 ns;
