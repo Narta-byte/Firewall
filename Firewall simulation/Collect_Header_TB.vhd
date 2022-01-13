@@ -17,7 +17,7 @@ architecture Collect_Header_TB_arch of Collect_Header_TB is
     port (
       clk : in std_logic;
       reset : in std_logic; 
-      packet_in : in std_logic_vector (7 downto 0);
+      packet_in : in std_logic_vector (9 downto 0); 
       SoP : in std_logic;
       EoP : in std_logic;
       vld : in std_logic;
@@ -26,7 +26,7 @@ architecture Collect_Header_TB_arch of Collect_Header_TB is
 
       ready_hdr : out std_logic;
       header_data : out std_logic_vector (95 downto 0);
-      packet_forward : out std_logic_vector (7 downto 0);
+      packet_forward : out std_logic_vector (9 downto 0);
       -- vld_hdr : in std_logic -- Til test!
       vld_hdr : out std_logic;
       hdr_SoP : out std_logic;
@@ -39,7 +39,7 @@ architecture Collect_Header_TB_arch of Collect_Header_TB is
   -- signal declarations
   signal clk : std_logic;
   signal reset : std_logic;
-  signal packet_in : std_logic_vector (7 downto 0);
+  signal packet_in : std_logic_vector (9 downto 0);
   signal SoP : std_logic;
   signal EoP : std_logic;
   signal vld : std_logic;
@@ -48,7 +48,7 @@ architecture Collect_Header_TB_arch of Collect_Header_TB is
   
   signal ready_hdr : std_logic;
   signal header_data : std_logic_vector (95 downto 0);
-  signal packet_forward : std_logic_vector (7 downto 0);
+  signal packet_forward : std_logic_vector (9 downto 0);
   --signal vld_hdr_TB : std_logic; -- Fjern alle "TB's her! / Test.
   signal vld_hdr : std_logic;
   signal hdr_SoP : std_logic;
@@ -57,6 +57,16 @@ architecture Collect_Header_TB_arch of Collect_Header_TB is
   signal doneloop : std_logic;
   signal bytenm : integer := 0;
   signal packet_start : std_logic := '0';
+  signal hex12 : std_logic_vector (7 downto 0);
+  --signal h2 : std_logic_vector (3 downto 0);
+  signal bits1 : std_logic_vector (0 downto 0);
+  signal bits2 : std_logic_vector (0 downto 0);
+  signal packet_data : std_logic_vector(7 downto 0);
+  
+
+  
+
+  
 --  signal readvld_hdr : std_logic := '1';
   
   -- FSM Logics:
@@ -162,13 +172,13 @@ begin
 OUTPUT_LOGIC : process (clk)
     file input : TEXT open READ_MODE is "Input_packet.txt"; 
     
-    variable current_read_line  : line;
-    variable current_read_field : std_logic_vector (7 downto 0);
-    variable current_write_line : std_logic;
+    variable current_read_line	: line;
+    variable current_read_field	: std_logic_vector (7 downto 0);
+    variable current_write_line : std_logic_vector (0 downto 0);
     variable start_of_data_Reader : std_logic;
 
 begin
-    if Rising_Edge(clk) then
+    if Rising_Edge(clk) then  
     case current_state is
         when idle =>
             -- Do nothing
@@ -178,14 +188,31 @@ begin
           packet_start <= '1';
             bytenm <= bytenm + 1;
             readline(input, current_read_line);
-            hread(current_read_line, current_read_field); 
-            packet_in <= current_read_field;
-    
-            read(current_read_line, current_write_line); 
-            SoP <= current_write_line;
-        
+            hread(current_read_line, current_read_field);
+            hex12 <= current_read_field;
+            
+            --packet_in <= current_read_field;
+
+            --packet_in <= h1 & h2 & bits2;
+
             read(current_read_line, current_write_line);
-            EoP <= current_write_line;
+            bits1 <= current_write_line;
+            if bits1 = "1" then
+              SoP <= '1';
+            else
+              SoP <= '0';
+            end if;
+            
+            read(current_read_line, current_write_line);
+            bits2<= current_write_line;
+            if bits2 = "1" then
+              EoP <= '1';
+            else
+              EoP <= '0';
+            end if;
+    
+            packet_in <= hex12 & bits1 & bits2; 
+            packet_data <= hex12;
         else
           doneloop <= '1';
         end if;

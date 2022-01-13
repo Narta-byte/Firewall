@@ -11,7 +11,7 @@ entity Collect_Header is
     port (
       clk : in std_logic;
       reset : in std_logic;
-      packet_in : in std_logic_vector (7 downto 0);
+      packet_in : in std_logic_vector (9 downto 0);
       SoP : in std_logic;
       EoP : in std_logic;
       vld : in std_logic;
@@ -20,7 +20,7 @@ entity Collect_Header is
   
       ready_hdr : out std_logic;
       header_data : out std_logic_vector (95 downto 0); 
-      packet_forward : out std_logic_vector (7 downto 0);
+      packet_forward : out std_logic_vector (9 downto 0);
       vld_hdr : out std_logic;
       hdr_SoP : out std_logic;
       hdr_EoP :out std_logic
@@ -54,7 +54,14 @@ architecture Collect_header_arch of Collect_Header is
 
   signal header_sent : std_logic := '0';
   signal bytenum_next : integer := 0;
+  signal packet_num : integer := 0;
+
+  signal packetSop : std_logic;
+  signal packetEop : std_logic;
+  
+  
   signal wipe_cnt : std_logic;
+
   --signal doneloop : std_logic;
   
   
@@ -65,12 +72,22 @@ begin
   begin
     if reset = '1' then
       current_state <= idle;
+      FILE_CLOSE (output);
+      FILE_OPEN (output, "headerdata.txt", WRITE_MODE);
   elsif rising_edge(clk) then
       current_state <= next_state;
       bytenum <= bytenum_next;
       if wipe_cnt = '1' then
         bytenum <= 0;
       end if;
+
+ --     if FILE_CLOSE (output, "headerdata.txt", WRITE_MODE) then
+   --   FILE_OPEN (output, "headerdata.txt", WRITE_MODE);
+     -- end if;
+
+
+
+
   end if ;
   end process;
 
@@ -135,6 +152,8 @@ begin
   end process;
   
   OUTPUT_LOGIC : process (current_state, SoP, EoP, bytenum)
+    file output : TEXT open WRITE_MODE is "headerdata.txt";
+    variable current_write_line : line;
   begin
     bytenum_next <= bytenum;
     case current_state is
@@ -146,6 +165,8 @@ begin
           header_sent <= '1';
           packet_forward <= packet_in;
           
+          write(current_write_line, header_data_store);
+          writeline(output,current_write_line);
 
       when packet_next =>
           if SoP = '1' then
@@ -160,6 +181,7 @@ begin
             store3 <= x"00";
             header_data <= x"000000000000000000000000";
             header_data_store <= x"000000000000000000000000";
+            packet_num <= packet_num +1;
           end if;
           wipe_cnt <= SoP;
           bytenum_next <= bytenum +1;
@@ -174,47 +196,47 @@ begin
 
           if bytenum_next >= 11 and bytenum_next <= 14 then -- SRCADDR
             if bytenum_next = 11 then
-              store1 <= packet_in;
+              store1 <= packet_in (9 downto 2);
             end if;
             if bytenum_next = 12 then
-              store2 <= packet_in;
+              store2 <= packet_in (9 downto 2);
             end if;
             if bytenum_next = 13 then
-              store3 <= packet_in;
+              store3 <= packet_in (9 downto 2);
             end if;
 
-              srcaddr <= store1 & store2 & store3 & packet_in;
+              srcaddr <= store1 & store2 & store3 & packet_in(9 downto 2);
           end if; 
           
           if bytenum_next >= 15 and bytenum_next <= 18 then -- DESTADDR
             if bytenum_next = 15 then
-              store1 <= packet_in;
+              store1 <= packet_in(9 downto 2);
             end if;
             if bytenum_next = 16 then
-              store2 <= packet_in;
+              store2 <= packet_in(9 downto 2);
             end if;
             if bytenum_next = 17 then
-              store3 <= packet_in;
+              store3 <= packet_in(9 downto 2);
             end if;
             
-            destaddr <= store1 & store2 & store3 & packet_in;
+            destaddr <= store1 & store2 & store3 & packet_in(9 downto 2);
           end if;
     
           if bytenum_next >= 19 and bytenum_next <= 20 then -- SRCPORT
             if bytenum_next = 19 then
-              store1 <= packet_in;
+              store1 <= packet_in(9 downto 2);
             end if;
-            srcport <= store1 & packet_in;
+            srcport <= store1 & packet_in(9 downto 2);
           end if;
     
           if bytenum_next >= 21 and bytenum_next <= 22 then -- DESTPORT
             if bytenum_next = 21 then
-              store1 <= packet_in;
+              store1 <= packet_in(9 downto 2);
             end if;
-            destport <= store1 & packet_in;
+            destport <= store1 & packet_in(9 downto 2);
           end if;
     
-          if bytenum_next = 23 then
+          if bytenum_next = 23 then 
             header_data_store <= srcaddr & destaddr & srcport & destport;
           end if;
 

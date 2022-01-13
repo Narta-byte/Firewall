@@ -316,8 +316,9 @@ R23
 R24
 R0
 Ecollect_header
-Z38 w1641568168
-R2
+Z38 w1642058740
+Z39 DPx4 ieee 16 std_logic_textio 0 22 V5TSK`;aJKC<l]CEg1>mz1
+Z40 DPx4 ieee 20 numeric_std_unsigned 0 22 jF^[l6kSe0l<k3W[UC=P83
 R3
 R9
 R10
@@ -325,95 +326,96 @@ R19
 R20
 R21
 l0
-L6
-Vfk[Z9n2zh0ddlgLYlQ_W93
-!s100 PZ[kC[189c@Z84B>I398F3
+L10
+VYP99[dJCWZa>T29Uo[>:P0
+!s100 nmcX6>DKBOIJUj9P=KcK;3
 R14
 32
-Z39 !s110 1641584298
+Z41 !s110 1642059372
 !i10b 1
-Z40 !s108 1641584298.000000
-Z41 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|C:/Users/Asger/3-ugers/Firewall/Firewall simulation/Collect_Header.vhd|
-Z42 !s107 C:/Users/Asger/3-ugers/Firewall/Firewall simulation/Collect_Header.vhd|
+Z42 !s108 1642059372.000000
+Z43 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|C:/Users/Asger/3-ugers/Firewall/Firewall simulation/Collect_Header.vhd|
+Z44 !s107 C:/Users/Asger/3-ugers/Firewall/Firewall simulation/Collect_Header.vhd|
 !i113 1
 R23
 R24
 Acollect_header_arch
-R2
+R39
+R40
 R3
 R9
 R10
-Z43 DEx4 work 14 collect_header 0 22 fk[Z9n2zh0ddlgLYlQ_W93
-l62
-L28
-VGHPRLTaFZc<<ZhhUR]_]73
-!s100 Vc2WSKh_^=KmRdcl2U3Nn0
+DEx4 work 14 collect_header 0 22 YP99[dJCWZa>T29Uo[>:P0
+l69
+L31
+VE0zgKGECOUJRTZjaX`mTc0
+!s100 P<1LdmCS`Yn]0m8k1EjMi2
 R14
 32
-R39
-!i10b 1
-R40
 R41
+!i10b 1
 R42
+R43
+R44
 !i113 1
 R23
 R24
 Ecollect_header_tb
-Z44 w1641554954
-Z45 DPx4 ieee 16 std_logic_textio 0 22 V5TSK`;aJKC<l]CEg1>mz1
-Z46 DPx4 ieee 20 numeric_std_unsigned 0 22 jF^[l6kSe0l<k3W[UC=P83
+Z45 w1642058847
+R39
+R40
 R3
 R9
 R10
 R19
-Z47 8C:/Users/Asger/3-ugers/Firewall/Firewall simulation/Collect_Header_TB.vhd
-Z48 FC:/Users/Asger/3-ugers/Firewall/Firewall simulation/Collect_Header_TB.vhd
+Z46 8C:/Users/Asger/3-ugers/Firewall/Firewall simulation/Collect_Header_TB.vhd
+Z47 FC:/Users/Asger/3-ugers/Firewall/Firewall simulation/Collect_Header_TB.vhd
 l0
-L10
-V_PP_JM32eJUgnVV:8YFY]2
-!s100 HSCR:Jd2bgYSXHlhiH2:@1
+L11
+Vn5>:cXc8]H[QDAfKk[c@=3
+!s100 KV^=UG?nYN`;jPL@`^BAZ0
 R14
 32
-R39
+R41
 !i10b 1
-R40
-Z49 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|C:/Users/Asger/3-ugers/Firewall/Firewall simulation/Collect_Header_TB.vhd|
-Z50 !s107 C:/Users/Asger/3-ugers/Firewall/Firewall simulation/Collect_Header_TB.vhd|
+R42
+Z48 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|C:/Users/Asger/3-ugers/Firewall/Firewall simulation/Collect_Header_TB.vhd|
+Z49 !s107 C:/Users/Asger/3-ugers/Firewall/Firewall simulation/Collect_Header_TB.vhd|
 !i113 1
 R23
 R24
 Acollect_header_tb_arch
-R45
-R46
+R39
+R40
 R3
 R9
 R10
-DEx4 work 17 collect_header_tb 0 22 _PP_JM32eJUgnVV:8YFY]2
-l56
-L13
-VhGe><8LdbiHP>?^C^MnlA3
-!s100 0Ra5_N_mj423n9Y3XN4VT2
+Z50 DEx4 work 17 collect_header_tb 0 22 n5>:cXc8]H[QDAfKk[c@=3
+l76
+L14
+Z51 V5IW^MVEFZPjQn@Rie;UBo0
+Z52 !s100 :80Aj5KAFgGUNFRD505710
 R14
 32
-R39
+R41
 !i10b 1
-R40
+R42
+R48
 R49
-R50
 !i113 1
 R23
 R24
 Ecuckoo_hashing
-Z51 w1641301292
-Z52 DPx4 ieee 15 std_logic_arith 0 22 [G314=:2zXJ`VORJe1J@Z1
-Z53 DPx4 ieee 18 std_logic_unsigned 0 22 ;eZjO2D4ZDz<]0>8AL<ne1
+Z53 w1641301292
+Z54 DPx4 ieee 15 std_logic_arith 0 22 [G314=:2zXJ`VORJe1J@Z1
+Z55 DPx4 ieee 18 std_logic_unsigned 0 22 ;eZjO2D4ZDz<]0>8AL<ne1
 R2
 R3
 R9
 R10
 R11
-Z54 8C:/Users/luxen/Firewall/Firewall simulation/Cuckoo_Hashing.vhd
-Z55 FC:/Users/luxen/Firewall/Firewall simulation/Cuckoo_Hashing.vhd
+Z56 8C:/Users/luxen/Firewall/Firewall simulation/Cuckoo_Hashing.vhd
+Z57 FC:/Users/luxen/Firewall/Firewall simulation/Cuckoo_Hashing.vhd
 l0
 L7
 VWHR]bW>@g6E40kEMJiDU@0
@@ -423,14 +425,14 @@ R14
 R5
 !i10b 1
 R6
-Z56 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|C:/Users/luxen/Firewall/Firewall simulation/Cuckoo_Hashing.vhd|
-Z57 !s107 C:/Users/luxen/Firewall/Firewall simulation/Cuckoo_Hashing.vhd|
+Z58 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|C:/Users/luxen/Firewall/Firewall simulation/Cuckoo_Hashing.vhd|
+Z59 !s107 C:/Users/luxen/Firewall/Firewall simulation/Cuckoo_Hashing.vhd|
 !i113 1
 R23
 R24
 Acuckoo_hashing_tb
-R52
-R53
+R54
+R55
 R2
 R3
 R9
@@ -445,8 +447,8 @@ R14
 R5
 !i10b 1
 R6
-R56
-R57
+R58
+R59
 !i113 1
 R23
 R24
