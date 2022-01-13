@@ -52,7 +52,9 @@ architecture bench of Cuckoo_Hashing_tb is
   signal rdy_ad_hash : std_logic;
 
  
-
+  -- constants
+  constant data_length : integer := 513;
+  
   -- fsm logic
   type State_type is (setup_rulesearch,set_key,wait_for_ready_insert,send_key,terminate_insertion, wipe_memory,wait_for_last_calc_to_finish,
                       goto_cmd_state, start_hash_matching, send_match_key, wait_for_ready_match,terminate_match,test_a_wrong_header,
@@ -63,7 +65,7 @@ architecture bench of Cuckoo_Hashing_tb is
 
   --maybe make theese varibles in output logic  
   signal cnt : integer;
-  type data_array is array (0 to 160) of std_logic_vector(95 downto 0);
+  type data_array is array (0 to data_length) of std_logic_vector(95 downto 0);
   signal data_array_sig : data_array;
 
   --signals in hashmatching
@@ -184,7 +186,7 @@ begin
   end process;
 
   OUTPUT_LOGIC : process (current_state)
-  file input : TEXT open READ_MODE is "big_data_input_file.txt";
+  file input : TEXT open READ_MODE is "large_input_file_increment.txt";
   variable current_read_line : line;
   variable hex_reader : std_logic_vector(95 downto 0);
   
@@ -199,7 +201,7 @@ begin
       when wipe_memory => cmd_in <= "00";
       when set_key =>
        
-          READ_ARRAY : for i in 0 to 160 loop
+          READ_ARRAY : for i in 0 to data_length loop
             if not ENDFILE(input) then
               
               readline(input, current_read_line);
@@ -209,7 +211,16 @@ begin
               end if ;
           
           end loop ; -- READ_ARRAY
-          
+          -- READ_ARRAY : for i in 0 to data_length-1 loop
+          --   --   if not ENDFILE(input) then
+                
+          --   --     readline(input, current_read_line);
+          --   --     READ(current_read_line, hex_reader);
+                
+          --   --     data_array_sig(i) <= hex_reader;
+          --   --     end if ;
+          --   data_array_sig(i) <= std_logic_vector(to_unsigned(i,96));
+          -- end loop ; -- READ_ARRAY
 
         done_looping <= '1';
         cmd_in <= "01";
@@ -219,7 +230,7 @@ begin
       when send_key =>
           key_in <= data_array_sig(cnt);
           cnt <= cnt+1;
-          if cnt = 160 then
+          if cnt = data_length then
             data_end <= '1';
             
           end if ;
@@ -247,7 +258,7 @@ begin
       when send_match_key => 
           header_data <=  data_array_sig(cnt); 
           cnt <= cnt +1;            
-          if cnt = 160 then
+          if cnt = data_length then
             match_done <= '1';
           end if ;
 
@@ -264,7 +275,9 @@ begin
       when terminate_match => vld_hdr <= '0';
 
       when test_a_wrong_header => 
-        header_data <= "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" & "00011111";
+        --header_data <= "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" & "00011111";
+        --header_data <= "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" & "11111111";
+        header_data <= "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111" & "11111111";
 
       when wait_for_match_to_fin => 
       

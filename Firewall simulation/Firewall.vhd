@@ -1,7 +1,11 @@
-library ieee;
-use ieee.std_logic_1164.all;
-use ieee.numeric_std.all;
+library IEEE;
+library std;
+use IEEE.std_logic_1164.all;
+use IEEE.numeric_std.all;
+use ieee.std_logic_unsigned.all;
 use std.textio.all;
+use STD.textio.all;
+use IEEE.std_logic_textio.all;
 
 entity firewall is
 end entity;
@@ -48,8 +52,8 @@ end component;
 
 component minfifo
       port (
-      clk : in STD_LOGIC;
-      packet_forward : in STD_LOGIC_VECTOR (9 DOWNTO 0);
+      clock : in STD_LOGIC;
+      data : in STD_LOGIC_VECTOR (9 DOWNTO 0);
       rdreq : in STD_LOGIC; -- Michael, hjælp!
       wrreq : in STD_LOGIC; --Michael, hjælp!
       empty : out STD_LOGIC; --Michail, hilfe!
@@ -67,7 +71,7 @@ component minfifo
           --FIFO_sop : in std_logic; 
           --FIFO_eop : in std_logic; 
           vld_fifo : in std_logic; --yes
-          acc_deny : in std_logic; --yes
+          acc_deny_hash : in std_logic; --yes
           vld_ad_hash : in std_logic; --yes
           rdy_ad_hash : out std_logic; --yes
           rdy_ad_FIFO : out std_logic; -- micheal hjælp
@@ -117,7 +121,7 @@ component minfifo
 
   --fifo
   --signal clk : STD_LOGIC;
-  signal data : STD_LOGIC_VECTOR (9 DOWNTO 0) := x"00";
+  signal data : STD_LOGIC_VECTOR (9 DOWNTO 0) := "0000000000";
   signal rdreq : STD_LOGIC := '0';
   signal wrreq : STD_LOGIC := '0';
   signal empty : STD_LOGIC := '0';
@@ -130,8 +134,8 @@ component minfifo
   --signal clk : std_logic;
   --signal reset : std_logic;
   signal packet_forward_FIFO : std_logic_vector(9 downto 0) := "0000000000";
-  --signal FIFO_sop : std_logic;
-  --signal FIFO_eop : std_logic;
+  signal FIFO_sop : std_logic; --
+  signal FIFO_eop : std_logic; --
   signal vld_fifo : std_logic; -- micheal hjælp
   --signal acc_deny_hash : std_logic; 
   --signal vld_ad_hash : std_logic; 
@@ -231,16 +235,22 @@ begin
   
     minfifo_inst : minfifo
     port map (
-      clk => clk,
-      data => data,
-      rdreq => rdreq,
-      wrreq => wrreq,
+      clock => clk,
+      data => data, --packet_forward?
+      rdreq => rdreq, -- rdy
+      wrreq => wrreq, --= val
       empty => empty,
-      full => full,
+      full => full, -- rdy = not(full)
       q => q,
       usedw => usedw
     );
-
+    vld_fifo <= not full;
+    rdreq <= rdy_ad_FIFO and (not empty);
+    wrreq <= vld_hdr and (not full);
+    rdy_collecthdr <= not full;
+    FIFO_sop <= q(8);
+    FIFO_eop <= q(9);
+    data <=  packet_forward;
     --
     Accept_Deny_inst : Accept_Deny
         port map (
@@ -271,7 +281,7 @@ begin
     end process;  
     
     NEXT_STATE_LOGIC : process (current_state, done_looping, 
-                              rdy_firewall_hash, vld_firewall_hash, 
+                              rdy_firewall_hash, vld_firewall_hash,
                               data_end,calc_is_done,
                               rdy_hash,
                               vld_hdr, cnt_calc_fin,
@@ -380,10 +390,10 @@ begin
               readline(input, current_read_line_keys);
               READ(current_read_line_keys, std_logic_vector_reader);
               
-              data_array_sig(i) <= std_logic_vector_reader;
-              end if ;
-          
-          end loop ; -- READ_ARRAY
+              data_array_sig(i) <= std_logic_vector_reader; 
+              end if ; 
+           
+          end loop ; -- READ_ARRAY 
 
         done_looping <= '1';
         cmd_in <= "01";
@@ -415,7 +425,7 @@ begin
           --header_data <= "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" & data_array_sig(cnt); 
           
       when comince_byte_stream => --packet_input 
-      if not (endfile(input_packet)) then -- Skal vi lave tilhørende signaler her? Eller kan vi bruge fra collectheader_TB på en en måde?
+      if not (endfile(input_packet)) then                      -- Skal vi lave tilhørende signaler her? Eller kan vi bruge fra collectheader_TB på en en måde?
         packet_start <= '1';
         bytenm <= bytenm + 1;
         readline(input_packet, current_read_line);

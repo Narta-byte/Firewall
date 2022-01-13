@@ -15,8 +15,8 @@ entity Collect_Header is
     SoP : in std_logic;
     EoP : in std_logic;
     vld_firewall : in std_logic;
-    ready_FIFO : in std_logic;
-    ready_hash : in std_logic;
+    rdy_FIFO : in std_logic;
+    rdy_hash : in std_logic;
 
     ready_hdr : out std_logic;
     header_data : out std_logic_vector (95 downto 0);
@@ -78,54 +78,54 @@ begin
     end if;
   end process;
 
-  NEXT_STATE_LOGIC : process (current_state, vld_firewall, ready_hash, ready_FIFO, SoP, EoP, bytenum_next, header_sent)
+  NEXT_STATE_LOGIC : process (current_state, vld_firewall, rdy_hash, rdy_FIFO, SoP, EoP, bytenum_next, header_sent)
   begin
     next_state <= current_state;
     case current_state is
 
       when idle =>
-        if ready_hash = '1' and ready_FIFO = '1' and EoP = '1' and vld_firewall = '1' then
+        if rdy_hash = '1' and rdy_FIFO = '1' and EoP = '1' and vld_firewall = '1' then
           next_state <= packet_next;
         end if;
 
       when packet_next =>
 
-        if ready_FIFO = '1' and ready_hash = '1' and bytenum_next >= 10 and bytenum_next <= 23 and vld_firewall = '1' then
+        if rdy_FIFO = '1' and rdy_hash = '1' and bytenum_next >= 10 and bytenum_next <= 23 and vld_firewall = '1' then
           next_state <= collect_header;
         elsif bytenum_next >= 24 and SoP = '0' and header_sent = '0' then
           next_state <= forward_header;
-        elsif ready_FIFO = '1' and ready_hash = '1' and vld_firewall = '1' then
+        elsif rdy_FIFO = '1' and rdy_hash = '1' and vld_firewall = '1' then
           next_state <= packet_next;
-        elsif ready_FIFO = '0' or ready_hash = '0' or vld_firewall = '0' then
+        elsif rdy_FIFO = '0' or rdy_hash = '0' or vld_firewall = '0' then
           next_state <= stop_wait;
         end if;
 
       when stop_wait =>
 
-        if ready_FIFO = '0' or ready_hash = '0' or vld_firewall = '0' then
+        if rdy_FIFO = '0' or rdy_hash = '0' or vld_firewall = '0' then
           next_state <= stop_wait;
-        elsif ready_FIFO = '1' and ready_hash = '1' and bytenum_next >= 10 and bytenum_next <= 23 and vld_firewall = '1' then
+        elsif rdy_FIFO = '1' and rdy_hash = '1' and bytenum_next >= 10 and bytenum_next <= 23 and vld_firewall = '1' then
           next_state <= collect_header;
-        elsif ready_FIFO = '1' and ready_hash = '1' and bytenum_next >= 23 and vld_firewall = '1' and header_sent = '0' then 
+        elsif rdy_FIFO = '1' and rdy_hash = '1' and bytenum_next >= 23 and vld_firewall = '1' and header_sent = '0' then 
           next_state <= forward_header;
 
-        elsif ready_FIFO = '1' and ready_hash = '1' and vld_firewall = '1' then
+        elsif rdy_FIFO = '1' and rdy_hash = '1' and vld_firewall = '1' then
           next_state <= packet_next;
         end if;
 
       when collect_header =>
-        if ready_FIFO = '0' or ready_hash = '0' or vld_firewall = '0' then
+        if rdy_FIFO = '0' or rdy_hash = '0' or vld_firewall = '0' then
           next_state <= stop_wait;
-        elsif ready_FIFO = '1' and ready_hash = '1' and vld_firewall = '1' and header_sent = '0' and bytenum_next <= 23 then
+        elsif rdy_FIFO = '1' and rdy_hash = '1' and vld_firewall = '1' and header_sent = '0' and bytenum_next <= 23 then
           next_state <= collect_header;
-        elsif ready_FIFO = '1' and ready_hash = '1' and vld_firewall = '1' then
+        elsif rdy_FIFO = '1' and rdy_hash = '1' and vld_firewall = '1' then
           next_state <= forward_header;
         end if;
 
       when forward_header =>
-        if ready_FIFO = '1' and ready_hash = '1' and vld_firewall = '1' and header_sent = '1' then
+        if rdy_FIFO = '1' and rdy_hash = '1' and vld_firewall = '1' and header_sent = '1' then
           next_state <= packet_next;
-        elsif (ready_FIFO = '0' or ready_hash = '0' or vld_firewall = '0') and header_sent = '0' then
+        elsif (rdy_FIFO = '0' or rdy_hash = '0' or vld_firewall = '0') and header_sent = '0' then
           next_state <= stop_wait;
         else
           next_state <= forward_header;

@@ -87,7 +87,11 @@ architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
         begin  
             
                 REST : for i in 0 to 95 loop 
-                    connect := M(i) xor R(7);
+                    if (i > 95)  then
+                        connect := R(7);
+                    else
+                        connect := M(i) xor R(7);
+                    end if ;
                     for j in 7 downto 1 loop
                         if g(j) = '1' then
                             R(j):= connect xor R(j-1);
@@ -189,7 +193,7 @@ architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
                     when matching => 
                         if previous_search = '0' and exits_matching = '0'  then
                             next_state <= search_hash2;
-                        else
+                        elsif (exits_matching = '1') or (previous_search = '1') then
                             next_state <= AD_communication;
                         end if ;
 
@@ -252,12 +256,12 @@ architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
                         rdy_firewall_hash <= '0';
                         hashfun <= '0';
                         RW <= '0';
-                        --address <= "000"&std_logic_vector(to_unsigned(to_integer(unsigned(insertion_key)) mod 563,96)(5 downto 0));
+                        --address <=std_logic_vector(to_unsigned(to_integer(unsigned(insertion_key)) mod 227,96)(8 downto 0));
                         address <= '0' & calc_hash(insertion_key,g1);
                     when lookup_hash2 =>
                         hashfun <= '1';
                         RW <= '0';
-                        --address <= "000"&std_logic_vector(to_unsigned((to_integer(unsigned(insertion_key))/563 mod 563)+256,96)(5 downto 0)); 
+                        --address <= std_logic_vector(to_unsigned((to_integer(unsigned(insertion_key)) mod 211)+256,96)(8 downto 0)); 
                         address <= calc_hash(insertion_key,g2)+"100000000";
                     when is_occupied =>
                         if data_out(95 downto 0) = insertion_key then
@@ -289,12 +293,12 @@ architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
                     when search_hash1 => 
                         rdy_hash <= '0';
                         RW <= '0';
-                        --address <= "000"&std_logic_vector(to_unsigned(to_integer(unsigned(matching_key)) mod 563,96)(5 downto 0));
-                        address <= '0' & calc_hash(insertion_key,g1);
+                        --address <=std_logic_vector(to_unsigned(to_integer(unsigned(matching_key)) mod 227,96)(8 downto 0));
+                        address <= '0' & calc_hash(matching_key,g1);
                     when search_hash2 => 
                         RW <= '0';
-                        --address <= "000"&std_logic_vector(to_unsigned((to_integer(unsigned(matching_key))/563 mod 563)+256,96)(5 downto 0)); 
-                        address <= calc_hash(insertion_key,g2)+"100000000";
+                        --address <= std_logic_vector(to_unsigned((to_integer(unsigned(matching_key))/227 mod 227)+256,96)(8 downto 0)); 
+                        address <= calc_hash(matching_key,g2)+"100000000";
                         previous_search <= '1';
 
                     when matching => 
