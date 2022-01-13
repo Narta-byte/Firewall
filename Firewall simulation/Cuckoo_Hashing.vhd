@@ -18,16 +18,16 @@ entity Cuckoo_Hashing is
     cmd_in : in std_logic_vector(1 downto 0);
     key_in : in std_logic_vector(95 downto 0);
 
-    header_in : in std_logic_vector(95 downto 0);
-    val_hdr : in std_logic;
-    rdy_hdr : out std_logic;
+    header_data : in std_logic_vector(95 downto 0);
+    vld_hdr : in std_logic;
+    rdy_hash : out std_logic;
 
-    val_in : in std_logic;
-    rdy_out : out std_logic;
+    vld_firewall_hash : in std_logic;
+    rdy_firewall_hash : out std_logic;
 
     acc_deny_out : out std_logic;
-    val_ad : out std_logic;
-    rdy_ad : in std_logic
+    vld_ad_hash : out std_logic;
+    rdy_ad_hash : in std_logic
   ) ;
 end Cuckoo_Hashing ;
 
@@ -37,7 +37,7 @@ architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
 ,ERROR,is_occupied,rdy_key,flush_memory,rdy_for_match,search_hash1,search_hash2,matching,AD_communication);
     signal current_state, next_state : State_type;
     
-    signal exits_cuckoo,insert_flag,hashfun,flip,flush_flag : std_logic := '0';
+    signal exits_cuckoo,insert_flag,hashfun,flip,flush_flag,eq_key : std_logic := '0';
     signal MAX : integer:= 0;
     
     --hash matching signals
@@ -50,7 +50,7 @@ architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
         reset : in std_logic;
         flush_sram : in std_logic;
         RW : in std_logic;
-        address : in std_logic_vector(5 downto 0);
+        address : in std_logic_vector(8 downto 0);
         data_in : in std_logic_vector(95 downto 0);
         data_out : out std_logic_vector(96 downto 0)
       );
@@ -59,17 +59,55 @@ architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
       signal occupied_flag_out :  std_logic;
       signal flush_sram : std_logic := '0';
       signal RW : std_logic:='0';
-      signal address :  std_logic_vector(5 downto 0);
+      signal address :  std_logic_vector(8 downto 0);
       signal data_in :  std_logic_vector(95 downto 0);
       signal data_out :  std_logic_vector(96 downto 0);
       
       signal insertion_key : std_logic_vector(95 downto 0);
       
+      --debug
+      signal DEBUG_OK_CNT, DEBUG_KO_CNT : integer:=0;
       
+
+      --crc fun
+    signal g1       : std_logic_vector(8 downto 0) := "100101111";
+    signal g2	    : std_logic_vector(8 downto 0) := "101001001";
+
+    function calc_hash (M : std_logic_vector; g : std_logic_vector)
+        return std_logic_vector is
+
+            variable crc : std_logic_vector(7 downto 0) := (others => '0');
+
+            type R_array is array (0 to 7) of std_logic;
+            variable R : R_array := (others=>'0');
+
+            variable connect : std_logic;
+
+
+        begin  
+            
+                REST : for i in 0 to 95 loop 
+                    connect := M(i) xor R(7);
+                    for j in 7 downto 1 loop
+                        if g(j) = '1' then
+                            R(j):= connect xor R(j-1);
+                        else
+                            R(j):= R(j-1);
+                        end if; 
+                    end loop; 
+                    R(0) := connect;
+                end loop;
+            
+            crc := R(7) & R(6) & R(5) & R(4) & R(3) & R(2) & R(1) & R(0);  
+
+        return std_logic_vector(crc);
+
+    end function calc_hash; 
+
       begin
 
-        SRAM_inst : SRAM
-        port map (
+    SRAM_inst : SRAM
+    port map (
       clk => clk,
       reset => reset,
       flush_sram => flush_sram,
@@ -89,43 +127,50 @@ architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
         end if ;
     end process;
 
-    NEXT_STATE_LOGIC : process (current_state, insert_flag, set_rule, val_in, exits_cuckoo, max, flip,flush_flag, 
-                                previous_search, exits_matching, val_hdr)
+    NEXT_STATE_LOGIC : process (current_state, insert_flag, set_rule, vld_firewall_hash, exits_cuckoo, max, flip,flush_flag, 
+                                previous_search, exits_matching, vld_hdr)
     begin
         next_state <= current_state;
                 case(current_state) is
 
-                    when command_state => if flush_flag = '1' then
-                        next_state <= flush_memory;
-                    elsif insert_flag ='1' then
-                        next_state <= rdy_key;
-                    elsif set_rule = '0' then
-                        next_state <= hash_matching;
-                    end if ;
-                    when rdy_key => if insert_flag ='0' then
-                        next_state <= command_state;
-                    elsif val_in ='1' then
-                        next_state <= lookup_hash1;
-                    end if ;
+                    when command_state => 
+                        if flush_flag = '1' then
+                            next_state <= flush_memory;
+                        elsif insert_flag ='1' then
+                            next_state <= rdy_key;
+                        elsif set_rule = '0' then
+                            next_state <= hash_matching;
+                        end if ;
+
+                    when rdy_key =>     
+                        if insert_flag ='0' then
+                            next_state <= command_state;
+                        elsif vld_firewall_hash ='1' then
+                            next_state <= lookup_hash1;
+                        end if ;
+
                     when flush_memory => next_state <=command_state;
                         
                     when hash_matching => 
                         if set_rule = '1' then
                             next_state <= command_state;
-                        elsif val_hdr = '1' then
+                        elsif vld_hdr = '1' then
                             next_state <= search_hash1;
                         end if ;
 
                     when lookup_hash1 => next_state <= is_occupied;
 
-                    when is_occupied => if exits_cuckoo = '1' then
-                        next_state <= remember_and_replace;
-                    else
-                        next_state <= insert_key;
-                    end if;
+                    when is_occupied => 
+                        if eq_key = '1' then
+                            next_state <= rdy_key;
+                        elsif exits_cuckoo = '1' then
+                            next_state <= remember_and_replace;
+                        else
+                            next_state <= insert_key;
+                        end if;
 
                     when lookup_hash2 => next_state <= is_occupied;
-                    when remember_and_replace => if max = 15 then
+                    when remember_and_replace => if max = 31 then
                         next_state <= ERROR;
                     elsif flip = '1' then
                         next_state <= lookup_hash1;
@@ -149,7 +194,7 @@ architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
                         end if ;
 
                     when AD_communication => 
-                        if rdy_ad = '1' then
+                        if rdy_ad_hash = '1' then
                             next_state <= hash_matching;
                         end if ;
 
@@ -198,23 +243,26 @@ architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
                             if not (cmd_in = "01")  then
                                 insert_flag <= '0';
                             end if ;
-                        rdy_out <= '1'; 
+                        rdy_firewall_hash <= '1'; 
                         insertion_key<=key_in;
                         max <= 0;
+                        eq_key <= '0';
                             
                     when lookup_hash1 =>
-                        rdy_out <= '0';
+                        rdy_firewall_hash <= '0';
                         hashfun <= '0';
                         RW <= '0';
-                        address <= std_logic_vector(to_unsigned(to_integer(unsigned(insertion_key)) mod 11,96)(5 downto 0));
-                            
+                        --address <= "000"&std_logic_vector(to_unsigned(to_integer(unsigned(insertion_key)) mod 563,96)(5 downto 0));
+                        address <= '0' & calc_hash(insertion_key,g1);
                     when lookup_hash2 =>
                         hashfun <= '1';
                         RW <= '0';
-                        address <= std_logic_vector(to_unsigned((to_integer(unsigned(insertion_key))/11 mod 11)+15,96)(5 downto 0)); 
-
+                        --address <= "000"&std_logic_vector(to_unsigned((to_integer(unsigned(insertion_key))/563 mod 563)+256,96)(5 downto 0)); 
+                        address <= calc_hash(insertion_key,g2)+"100000000";
                     when is_occupied =>
-                        if data_out(96) = '1' then
+                        if data_out(95 downto 0) = insertion_key then
+                            eq_key <= '1';
+                        elsif data_out(96) = '1' then
                             exits_cuckoo <= '1';
                         else
                             exits_cuckoo <= '0';
@@ -234,32 +282,36 @@ architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
                     when ERROR =>
                             
                     when hash_matching =>
-                        acc_deny_out <= '0'; 
-                        rdy_hdr <= '1';
-                        matching_key <= header_in;
+                        rdy_hash <= '1';
+                        matching_key <= header_data;
                         previous_search <= '0';
-                        val_ad <= '0';
+                        vld_ad_hash <= '0';
                     when search_hash1 => 
-                        rdy_hdr <= '0';
+                        rdy_hash <= '0';
                         RW <= '0';
-                        address <= std_logic_vector(to_unsigned(to_integer(unsigned(matching_key)) mod 11,96)(5 downto 0));
-
+                        --address <= "000"&std_logic_vector(to_unsigned(to_integer(unsigned(matching_key)) mod 563,96)(5 downto 0));
+                        address <= '0' & calc_hash(insertion_key,g1);
                     when search_hash2 => 
                         RW <= '0';
-                        address <= std_logic_vector(to_unsigned((to_integer(unsigned(matching_key))/11 mod 11)+15,96)(5 downto 0)); 
+                        --address <= "000"&std_logic_vector(to_unsigned((to_integer(unsigned(matching_key))/563 mod 563)+256,96)(5 downto 0)); 
+                        address <= calc_hash(insertion_key,g2)+"100000000";
                         previous_search <= '1';
 
                     when matching => 
                     if data_out(95 downto 0) = matching_key then
                         exits_matching <= '1';
                         acc_deny_out <= '1';
+                        DEBUG_KO_CNT <= DEBUG_KO_CNT +1; 
                     else
+                        if previous_search = '1' then
+                            DEBUG_OK_CNT <= DEBUG_OK_CNT+1;
+                            acc_deny_out <= '0';
+                        end if ;
                         exits_matching <= '0';
-                        acc_deny_out <= '0';
                     end if;
                             
                     when AD_communication => 
-                        val_ad <= '1';                     
+                        vld_ad_hash <= '1';                     
                     
                     when others => report "ERROR IN OUTPUT LOGIC" severity failure;
                     

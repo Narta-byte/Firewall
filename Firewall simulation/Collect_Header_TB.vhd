@@ -20,7 +20,7 @@ architecture Collect_Header_TB_arch of Collect_Header_TB is
       packet_in : in std_logic_vector (9 downto 0); 
       SoP : in std_logic;
       EoP : in std_logic;
-      vld : in std_logic;
+      vld_firewall : in std_logic;
       ready_FIFO : in std_logic;
       ready_hash : in std_logic;
 
@@ -42,7 +42,7 @@ architecture Collect_Header_TB_arch of Collect_Header_TB is
   signal packet_in : std_logic_vector (9 downto 0);
   signal SoP : std_logic;
   signal EoP : std_logic;
-  signal vld : std_logic;
+  signal vld_firewall : std_logic;
   signal ready_FIFO : std_logic;
   signal ready_hash : std_logic;
   
@@ -81,7 +81,7 @@ begin
     packet_in,
     SoP,
     EoP,
-    vld,
+    vld_firewall,
     ready_FIFO,
     ready_hash,
 
@@ -120,7 +120,7 @@ begin
 
   testvld : process 
   begin
-    vld <= '1'; wait;
+    vld_firewall <= '1'; wait;
     
   end process;
 
@@ -140,29 +140,29 @@ begin
       end if ;
   end process;  
 
-  NEXT_STATE_LOGIC : process (current_state, ready_FIFO, ready_hash, vld, SoP, EoP, doneloop)
+  NEXT_STATE_LOGIC : process (current_state, ready_FIFO, ready_hash, vld_firewall, SoP, EoP, doneloop)
   begin
     case current_state is
         when idle =>
         if doneloop = '1' then
           next_state <= idle;
-      elsif vld = '1' and ready_hash = '1' and ready_FIFO = '1' then --and SoP = '1' then
+      elsif vld_firewall = '1' and ready_hash = '1' and ready_FIFO = '1' then --and SoP = '1' then
             next_state <= packet_input;
         end if;
             
         when packet_input =>
         if doneloop = '1' then
           next_state <= idle;
-        elsif ready_FIFO = '0' or ready_hash = '0' or vld = '0' then
+        elsif ready_FIFO = '0' or ready_hash = '0' or vld_firewall = '0' then
           next_state <= stop_wait;          
-        elsif ready_FIFO = '1' and ready_hash = '1' and vld = '1' then
+        elsif ready_FIFO = '1' and ready_hash = '1' and vld_firewall = '1' then
           next_state <= packet_input;
         end if;
 
         when stop_wait =>
-          if ready_FIFO = '0' or ready_hash = '0' or vld = '0' then
+          if ready_FIFO = '0' or ready_hash = '0' or vld_firewall = '0' then
             next_state <= stop_wait;
-          elsif ready_FIFO = '1' and ready_hash = '1' and vld = '1' then
+          elsif ready_FIFO = '1' and ready_hash = '1' and vld_firewall = '1' then
             next_state <= packet_input;            
         end if;
         when others => next_state <= idle;

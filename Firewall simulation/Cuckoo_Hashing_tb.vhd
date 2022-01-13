@@ -50,14 +50,15 @@ architecture bench of Cuckoo_Hashing_tb is
 
   -- fsm logic
   type State_type is (setup_rulesearch,set_key,wait_for_ready_insert,send_key,terminate_insertion, wipe_memory,wait_for_last_calc_to_finish,
-                      goto_cmd_state, start_hash_matching, send_match_key, wait_for_ready_match,terminate_match);
+                      goto_cmd_state, start_hash_matching, send_match_key, wait_for_ready_match,terminate_match,test_a_wrong_header,
+                      wait_for_match_to_fin, wait_for_wrong_calc_to_fin);
   signal current_state, next_state : State_type;
 
   signal data_end,done_looping,last_rdy,calc_is_done : std_logic :='0';
 
   --maybe make theese varibles in output logic  
   signal cnt : integer;
-  type data_array is array (0 to 9) of std_logic_vector(7 downto 0);
+  type data_array is array (0 to 160) of std_logic_vector(95 downto 0);
   signal data_array_sig : data_array;
 
   --signals in hashmatching
@@ -109,7 +110,8 @@ begin
 
   NEXT_STATE_LOGIC : process (current_state, done_looping, rdy_out, val_in, data_end,calc_is_done,
                               rdy_hdr, val_hdr, cnt_calc_fin, rdy_ad)
-  begin    
+  begin
+    next_state <= current_state; -- måske sus
       case current_state is
         when setup_rulesearch =>
           next_state <= wipe_memory;
@@ -145,7 +147,7 @@ begin
         when goto_cmd_state => next_state <= start_hash_matching;
 
         when start_hash_matching => --next_state <= wait_for_ready_match;
-          next_state <= wait_for_ready_match;
+          next_state <= send_match_key;
 
 
         when send_match_key => 
@@ -153,21 +155,35 @@ begin
         
         when wait_for_ready_match => 
           if match_done = '1' then
-            next_state <= terminate_match;
-          elsif  (rdy_hdr = '1')  then
+            next_state <= wait_for_match_to_fin;
+          elsif  (rdy_hdr = '1') and (val_hdr = '1')  then
             next_state <= send_match_key;
           end if ;
         when terminate_match => next_state <= terminate_match;
+
+        when test_a_wrong_header => next_state <= wait_for_wrong_calc_to_fin;
+            
+        when wait_for_match_to_fin => 
+          if rdy_hdr = '1' then
+            next_state <= test_a_wrong_header;
+          end if;
+        
+        when wait_for_wrong_calc_to_fin =>
+          if rdy_hdr = '1' then
+            next_state <= terminate_match;
+          end if;
         when others =>
           next_state <= setup_rulesearch;
       end case;
   end process;
 
   OUTPUT_LOGIC : process (current_state)
-  file input : TEXT open READ_MODE is "cuckoo_hash testdata.txt";
+  file input : TEXT open READ_MODE is "big_data_input_file.txt";
   variable current_read_line : line;
-  variable hex_reader : std_logic_vector(7 downto 0);
+  variable hex_reader : std_logic_vector(95 downto 0);
   
+  file output : text open WRITE_MODE is "DEBUG_OUTPUT.txt";
+  variable write_line : line;
   begin     
       case current_state is
       when setup_rulesearch => 
@@ -177,17 +193,17 @@ begin
       when wipe_memory => cmd_in <= "00";
       when set_key =>
        
-          READ_ARRAY : for i in 0 to 9 loop
+          READ_ARRAY : for i in 0 to 160 loop
             if not ENDFILE(input) then
               
               readline(input, current_read_line);
-              HREAD(current_read_line, hex_reader);
+              READ(current_read_line, hex_reader);
               
               data_array_sig(i) <= hex_reader;
               end if ;
           
           end loop ; -- READ_ARRAY
-
+          
 
         done_looping <= '1';
         cmd_in <= "01";
@@ -195,12 +211,16 @@ begin
       when wait_for_ready_insert => 
             
       when send_key =>
-          key_in <= "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" & data_array_sig(cnt);
+          key_in <= data_array_sig(cnt);
           cnt <= cnt+1;
-          if cnt = 9 then
+          if cnt = 160 then
             data_end <= '1';
             
           end if ;
+          -- DEBUG_LOOP : for i in 0 to 160 loop
+          --   write(write_line,data_array_sig(i));
+          --   writeline(output,write_line);
+          -- end loop ; -- DEBUG_LOOP
       when terminate_insertion => 
               val_in <= '0';
               cmd_in <= "11";
@@ -212,31 +232,40 @@ begin
       when start_hash_matching => 
           cmd_in <= "11";
           cnt <= 0;
-          set_rule <= '0';
           val_hdr <= '1';
           rdy_ad <= '1'; --this simulates that the accept deny block is always ready
+          --header_in <= "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" & data_array_sig(cnt); 
           
-          when send_match_key => 
+         
           
-          header_in <= "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" & data_array_sig(cnt); 
+      when send_match_key => 
+          header_in <=  data_array_sig(cnt); 
           cnt <= cnt +1;            
-          if cnt = 9 then
+          if cnt = 160 then
             match_done <= '1';
-            end if ;
+          end if ;
 
-          if acc_deny_out = '1' then
-            ok_cnt <= ok_cnt +1;
-          elsif acc_deny_out = '0' then
-            ko_cnt <= ko_cnt +1;
-          end if;
-            
-          when wait_for_ready_match => 
+      when wait_for_ready_match => 
             --val_hdr<= '1';
-           
+            set_rule <= '0';
+          if acc_deny_out = '1' then
+              ok_cnt <= ok_cnt +1;
+          elsif acc_deny_out = '0' then
+              ko_cnt <= ko_cnt +1;
+          end if;
             
 
       when terminate_match => val_hdr <= '0';
+
+      when test_a_wrong_header => 
+        header_in <= "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" & "00011111";
+
+      when wait_for_match_to_fin => 
       
+      
+      when wait_for_wrong_calc_to_fin =>
+      
+
       when others => report "FAILURE" severity failure;
           
       end case;

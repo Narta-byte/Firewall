@@ -9,7 +9,7 @@ entity SRAM is
     reset : in std_logic;
     flush_sram : in std_logic;
     RW : in std_logic;
-    address : in std_logic_vector(5 downto 0);
+    address : in std_logic_vector(8 downto 0);
     data_in : in std_logic_vector(95 downto 0);
     data_out : out std_logic_vector(96 downto 0) 
   ) ;
@@ -17,7 +17,7 @@ end SRAM ;
 
 architecture SRAM_arch of SRAM is
   
-  type WE_type is array (0 to 31) of std_logic_vector(96 downto 0); --occupied and key key 
+  type WE_type is array (0 to 511) of std_logic_vector(96 downto 0); --occupied and key key 
   signal WE : WE_type := (others => (others => '0')); 
 
 begin
