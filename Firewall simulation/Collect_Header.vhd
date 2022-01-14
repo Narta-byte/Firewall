@@ -22,6 +22,7 @@ entity Collect_Header is
     header_data : out std_logic_vector (95 downto 0);
     packet_forward : out std_logic_vector (9 downto 0);
     vld_hdr : out std_logic;
+    vld_hdr_FIFO : out std_logic;
     hdr_SoP : out std_logic;
     hdr_EoP : out std_logic
 
@@ -151,6 +152,7 @@ begin
         header_sent <= '1';
         packet_forward <= packet_in;
         vld_hdr <= '1';
+        
 
         write(current_write_line, header_data_store);
         writeline(output, current_write_line);
@@ -177,6 +179,7 @@ begin
         packet_forward <= packet_in;
         hdr_EoP <= EoP;
         vld_hdr <= '0';
+        vld_hdr_FIFO <= '1';
 
       when collect_header =>
         bytenum_next <= bytenum + 1;

@@ -29,8 +29,10 @@ architecture firewall_arch of firewall is
       header_data : out std_logic_vector (95 downto 0);
       packet_forward : out std_logic_vector (9 downto 0);
       vld_hdr : out std_logic;
+      vld_hdr_FIFO : out std_logic;
       hdr_SoP : out std_logic;
       hdr_EoP : out std_logic
+      
     );
   end component;
 
@@ -84,28 +86,8 @@ component minfifo
           ko_cnt : out std_logic_vector(8 downto 0) --yes ændres måske senere
         );
       end component;
-  -- component Accept_Deny
-  --     port (
-  --     clk : in std_logic;
-  --     reset : in std_logic;
-  --     packet_forward_FIFO : in std_logic_vector(9 downto 0);
-  --     --FIFO_sop : in std_logic;
-  --     --FIFO_eop : in std_logic;
-  --     vld_fifo : in std_logic;
-  --     acc_deny : in std_logic;
-  --     vld_ad_hash : in std_logic;
-  --     rdy_ad_hash : out std_logic;
-  --     rdy_ad_FIFO : out std_logic;
-  --     data_firewall : out std_logic_vector(9 downto 0);
-  --     ok_cnt : out std_logic_vector(8 downto 0);
-  --     ko_cnt : out std_logic_vector(8 downto 0)
-  --   );
-  -- end component;
- 
- 
-      -- Clock period
+  
   constant clk_period : time := 5 ns;
-  -- Generics
 
   -- Ports for Collect_header
   signal clk : std_logic := '0';
@@ -120,6 +102,7 @@ component minfifo
   signal header_data : std_logic_vector (95 downto 0) := x"000000000000000000000000";
   signal packet_forward : std_logic_vector (9 downto 0) := "0000000000";
   signal vld_hdr : std_logic := '0';
+  signal vld_hdr_FIFO : std_logic;
   signal hdr_SoP : std_logic := '0';
   signal hdr_EoP : std_logic := '0';
   signal entire_packet : std_logic_vector (9 downto 0);
@@ -245,6 +228,7 @@ begin
     header_data => header_data, --yes burde virke
     packet_forward => packet_forward, -- kan ikke implementeres pt
     vld_hdr => vld_hdr, -- yes
+    vld_hdr_FIFO => vld_hdr_FIFO,
     hdr_SoP => hdr_SoP, -- kan ikke implementeres pt
     hdr_EoP => hdr_EoP -- kan ikke implementeres pt
   );
@@ -282,10 +266,10 @@ begin
     );
     vld_fifo <= not full;
     rdreq <= rdy_ad_FIFO and (not empty);
-    wrreq <= vld_hdr and (not full);
+    wrreq <= vld_hdr_FIFO and (not full);
     rdy_collecthdr <= not full;
-    FIFO_sop <= q(8);
-    FIFO_eop <= q(9);
+    --FIFO_sop <= q(8);
+    --FIFO_eop <= q(9);
     data <=  packet_forward;
     --q <= packet_forward_FIFO;
     --
@@ -494,7 +478,8 @@ begin
           --vld_hdr <= '1';
           --rdy_ad_hash <= '1'; --this simulates that the accept deny block is always ready
           --header_data <= "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" & key_array_sig(cnt);
-          
+          vld_firewall <= '1';
+
       when comince_byte_stream => --packet_input 
       set_rule <= '0';
       nextbytenum <= bytenumber +1;
@@ -528,15 +513,58 @@ begin
 
   end process;
 
-  testvld : process 
-  begin
-    vld_firewall <= '1'; wait;
+  -- testvld : process 
+  -- begin
+  --   -- vld_firewall <= '1'; wait;
     
-  end process;
+  -- end process;
 
-
+   
     end; 
-    
+-- //                                      ;;.
+-- //                                     ,t;i,                 ,;;;:
+-- //                                     :t::i,              ,;i;:,:,
+-- //                                     11;:;i;.          .;i;:::,,:
+-- //                                    ,1;i11i11iii;;;;::;;:,:,..,,:.
+-- //                                  .:1ttt11i;iii1111ii;:.,:,. .,::.
+-- //                              ,i1tfftfffti;;ii;iiiiiii;:,,.  ,:;,
+-- //                             ;Lfffttttft1;;;i111i;;iii11i:..,:,;;
+-- //                            .fLLLt:,,;t1i;;1tttt1ii;iii1111i;:,:1;
+-- //                            1C00Ci. .i1t111ii;;:,:;;iii11111i;,,it.
+-- //                           ,C00Ct1i1tttftti:. :.  ,ii11111111i;:;1,
+-- //                           t0GGGfffftffftt1i;::,:i1tfffttttt11iii1;
+-- //                          ,CCGC;,...,;fLftt1tt11111tfLLftffftt11i11.
+-- //                          iGLGt       tLfftttfffLffffffLfffttt1ii11i
+-- //                          iGLf;.    .:i1tt11ffffffLfffftt1111ii;iiit;
+-- //                          1GLt:..  ..:iii1111ttttt1ttt1111111i;;i;i1t
+-- //                          ;GLLt,     .,::::,:i11111t11ttfttt1i;;;;iit:
+-- //                          .LCLft;.........,:i1111ttttttttt11i;;;;;;i1i
+-- //                           ,LLfff1iiiiiiii111111111tttt11iii;;;;::;;it;
+-- //                            tfffftttt1111iiiiii1ttttt111iii;;;:::;;;iti
+-- //                           :Ltttttt1111iiiiiii1tttt111111iii;:::;iii1t1
+-- //                           ;Lftt11111111iiiiiiii;iii11111ii;;;ii111t1f1
+-- //                           tLffftt1ii;ii;;;;;;;;ii11111111ii1tttttttttf
+-- //                           fCLfftt11ii;;;;;;ii11t11111tttttffffffftttt1
+-- //                          ,LCLLfft111iiiiiii11t111ttt11tttffttfffftt11:
+-- //                       .:1fLLLffttt11iiiiii111111111ttft1tffffffftt1ii;
+-- //                     ,1fLLCLLffttt111iiiii11111111t1tttfftfffffftt1i;;i
+-- //                  .:tffLCCCCLfftt1111i1i1111111t1t1111ttffffttt11ii;;;i
+-- //                 ,fLffLGGCGCLfftt111ii11111t1tttttttt11tfffftt111i;;;;1
+-- //                :fftfCGGLCCLLftt111ii1ii1111111tt11tttt1tttttttttti;;;t.
+-- //                :11tLGGLfffffttt1111iiiiiiii11111111i1111tttttffft1;;;1.
+-- //            .,;i111tCCLfftt11t11111i1ii1iiiiiii1i1ii11111ttttttfft1;:;:
+-- //          ,:;iiiii1tLLfttftt1iiiiiiiiiiiiiiiii1iii11111i111ttttttti;;;,
+-- //          ;;:;;;::1ffffffLLfftt111111iii1iiiii1ii111111ii11ttttttti;;i,
+-- //          .:::::iLGftffLLLLLLfttttttt1iii11tttttt11iiiii111ttttttti;;;
+-- //            ...;1tt1tfLLLLLLLfftt11t1ttfLCCLLLftt111iiii1111tttttt1ii.
+-- //                    1CLLLLLLLfftttffLGGGGCLLCLft1t11iii111t111ttttt1,
+-- //                    ,ttfffLLLLLfffLLGGLCCff11fttt11iiii11111111tt1t,
+-- //                        ..:;itf1tfffttt;1ti;::11i;;;iiiii111111111i
+-- //                              ..:1t1;::...:;, :1tfi,;ii;ii1111ii;i.
+-- //                                  ..,;;:.....;11tLL;:,:::;;;iiii;:
+-- //                                      ,;... .:,:i;1i,         ...
+-- //                                               ....,
+
  
       
     

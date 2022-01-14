@@ -182,7 +182,8 @@ begin
                         if acc_deny_hash = '1'  then 
                             data_firewall <= packet_forward_FIFO;
                             rdy_ad_hash <= '0';
-                            rdy_ad_FIFO <= '0'; 
+                            rdy_ad_FIFO <= '1'; 
+                            --rdy_ad_FIFO <= '0'; 
                         end if;
                             int_ok_next <= int_ok + 1;
 
@@ -193,6 +194,7 @@ begin
                         --    rdy_ad_FIFO <= '0';
                         -- end if; 
                         int_ko_next <= int_ko + 1;
+                        rdy_ad_FIFO <= '1'; 
                     
                     when others => report "ERROR IN OUTPUT LOGIC" severity failure; 
                     
