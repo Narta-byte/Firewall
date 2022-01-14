@@ -1,7 +1,11 @@
-library ieee;
-use ieee.std_logic_1164.all;
-use ieee.numeric_std.all;
-use ieee.math_real.all;
+library IEEE;
+library std;
+use IEEE.std_logic_1164.all;
+use IEEE.numeric_std.all;
+use ieee.std_logic_unsigned.all;
+use std.textio.all;
+use STD.textio.all;
+use IEEE.std_logic_textio.all;
 
 entity Accept_Deny is
     port (
@@ -82,8 +86,12 @@ begin
                                     next_state <= deny_and_delete;  
                                 end if;
 
-                        when accept_and_forward => next_state <= wait_hash;
-
+                        when accept_and_forward =>
+                                if eop = '1'then 
+                                    next_state <= wait_hash;
+                                else 
+                                    next_state <= accept_and_forward;
+                                end if;
                         when deny_and_delete => next_state <= wait_hash; 
 
                     end case; 
@@ -104,10 +112,9 @@ begin
                         rdy_ad_hash <= '1';
 
                     when get_packet =>
-                        if (full = '1') and (vld_fifo= '1') then 
-                            full_packet <= q;
-                            --rdy_ad_h <= '0';
-                        elsif  empty = '0' and (vld_fifo= '1') then 
+                        if (full = '1') and (vld_fifo = '1') then 
+                           data_firewall <= packet_forward_FIFO;
+                        elsif  (empty = '0') and (vld_fifo = '1') then 
                             report "FALIURE" severity failure; 
                         end if; 
                         rdy_ad_hash <= '0';
@@ -119,7 +126,7 @@ begin
                             rdy_ad_hash <= '0';
                             rdy_ad_fifo <= '0'; 
                         end if;
-                        int_ok <= int_ok + 1;
+                            int_ok <= int_ok + 1;
 
                     when deny_and_delete => 
                         if acc_deny_hash = '0' then 
@@ -127,7 +134,7 @@ begin
                             rdy_ad_hash <= '0';
                             rdy_ad_fifo <= '0';  
                         end if; 
-                        int_ko <= int_ko + 1;  
+                            int_ko <= int_ko + 1;
                     
                     when others => report "ERROR IN OUTPUT LOGIC" severity failure; 
                     
@@ -141,5 +148,4 @@ begin
         ok_cnt <= std_logic_vector(to_signed(int_ok, ok_cnt'length));
         ko_cnt <= std_logic_vector(to_signed(int_ko, ko_cnt'length));
         
-
 end architecture;

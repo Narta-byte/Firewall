@@ -21,8 +21,8 @@ architecture Collect_Header_TB_arch of Collect_Header_TB is
       SoP : in std_logic;
       EoP : in std_logic;
       vld_firewall : in std_logic;
-      ready_FIFO : in std_logic;
-      ready_hash : in std_logic;
+      rdy_FIFO : in std_logic;
+      rdy_hash : in std_logic;
 
       ready_hdr : out std_logic;
       header_data : out std_logic_vector (95 downto 0);
@@ -43,8 +43,8 @@ architecture Collect_Header_TB_arch of Collect_Header_TB is
   signal SoP : std_logic;
   signal EoP : std_logic;
   signal vld_firewall : std_logic;
-  signal ready_FIFO : std_logic;
-  signal ready_hash : std_logic;
+  signal rdy_FIFO : std_logic;
+  signal rdy_hash : std_logic;
   
   signal ready_hdr : std_logic;
   signal header_data : std_logic_vector (95 downto 0);
@@ -82,8 +82,8 @@ begin
     SoP,
     EoP,
     vld_firewall,
-    ready_FIFO,
-    ready_hash,
+    rdy_FIFO,
+    rdy_hash,
 
     ready_hdr,
     header_data,
@@ -101,21 +101,21 @@ begin
 --  end process;
   TestInputs : process 
   begin
-    ready_FIFO <= '1'; wait for 1390 ns;
---    ready_FIFO <= '1'; wait for 10000 ns;
-    ready_FIFO <= '0'; wait for 10 ns;  
-    ready_FIFO <= '1'; wait;
+    rdy_FIFO <= '1'; wait for 1390 ns;
+--    rdy_FIFO <= '1'; wait for 10000 ns;
+    rdy_FIFO <= '0'; wait for 10 ns;  
+    rdy_FIFO <= '1'; wait;
 
   end process;
 
   Testcuckoo : process
   begin
-    ready_hash <= '0'; wait for 10 ns;
-    ready_hash <= '1'; wait for 2033 ns;
-    ready_hash <= '0'; wait for 6 ns;
-    ready_hash <= '1'; wait for 2 ns;
-    ready_hash <= '0'; wait for 6 ns;
-    ready_hash <= '1'; wait;
+    rdy_hash <= '0'; wait for 10 ns;
+    rdy_hash <= '1'; wait for 2033 ns;
+    rdy_hash <= '0'; wait for 6 ns;
+    rdy_hash <= '1'; wait for 2 ns;
+    rdy_hash <= '0'; wait for 6 ns;
+    rdy_hash <= '1'; wait;
   end process;
 
   testvld : process 
@@ -140,29 +140,29 @@ begin
       end if ;
   end process;  
 
-  NEXT_STATE_LOGIC : process (current_state, ready_FIFO, ready_hash, vld_firewall, SoP, EoP, doneloop)
+  NEXT_STATE_LOGIC : process (current_state, rdy_FIFO, rdy_hash, vld_firewall, SoP, EoP, doneloop)
   begin
     case current_state is
         when idle =>
         if doneloop = '1' then
           next_state <= idle;
-      elsif vld_firewall = '1' and ready_hash = '1' and ready_FIFO = '1' then --and SoP = '1' then
+      elsif vld_firewall = '1' and rdy_hash = '1' and rdy_FIFO = '1' then --and SoP = '1' then
             next_state <= packet_input;
         end if;
             
         when packet_input =>
         if doneloop = '1' then
           next_state <= idle;
-        elsif ready_FIFO = '0' or ready_hash = '0' or vld_firewall = '0' then
+        elsif rdy_FIFO = '0' or rdy_hash = '0' or vld_firewall = '0' then
           next_state <= stop_wait;          
-        elsif ready_FIFO = '1' and ready_hash = '1' and vld_firewall = '1' then
+        elsif rdy_FIFO = '1' and rdy_hash = '1' and vld_firewall = '1' then
           next_state <= packet_input;
         end if;
 
         when stop_wait =>
-          if ready_FIFO = '0' or ready_hash = '0' or vld_firewall = '0' then
+          if rdy_FIFO = '0' or rdy_hash = '0' or vld_firewall = '0' then
             next_state <= stop_wait;
-          elsif ready_FIFO = '1' and ready_hash = '1' and vld_firewall = '1' then
+          elsif rdy_FIFO = '1' and rdy_hash = '1' and vld_firewall = '1' then
             next_state <= packet_input;            
         end if;
         when others => next_state <= idle;

@@ -316,7 +316,7 @@ R23
 R24
 R0
 Ecollect_header
-Z38 w1642059858
+Z38 w1642088649
 Z39 DPx4 ieee 16 std_logic_textio 0 22 V5TSK`;aJKC<l]CEg1>mz1
 Z40 DPx4 ieee 20 numeric_std_unsigned 0 22 jF^[l6kSe0l<k3W[UC=P83
 R3
@@ -327,13 +327,13 @@ R20
 R21
 l0
 L10
-VGcfh<a=5WHFO0AF?SNff70
-!s100 =5>]9jPJ;TT`WoaOoG1`B3
+VCbO]39Wn^D<05hSSA<0Le3
+!s100 PU_aLL>@]TFhA<c>SKG6^2
 R14
 32
-Z41 !s110 1642059860
+Z41 !s110 1642088779
 !i10b 1
-Z42 !s108 1642059860.000000
+Z42 !s108 1642088779.000000
 Z43 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|C:/Users/Asger/3-ugers/Firewall/Firewall simulation/Collect_Header.vhd|
 Z44 !s107 C:/Users/Asger/3-ugers/Firewall/Firewall simulation/Collect_Header.vhd|
 !i113 1
@@ -345,11 +345,11 @@ R40
 R3
 R9
 R10
-DEx4 work 14 collect_header 0 22 Gcfh<a=5WHFO0AF?SNff70
+DEx4 work 14 collect_header 0 22 CbO]39Wn^D<05hSSA<0Le3
 l60
 L31
-V5j`m]37`9XiPlzf4g27Em1
-!s100 kzi0O6K8WHDDjO_C39C^]3
+Vd`olJDNYGe=Q1LggZ;hWG3
+!s100 l^cg0bUnh`0zk@X7SJZBn3
 R14
 32
 R41
@@ -361,7 +361,7 @@ R44
 R23
 R24
 Ecollect_header_tb
-Z45 w1642059768
+Z45 w1642088776
 R39
 R40
 R3
@@ -393,8 +393,8 @@ R10
 Z50 DEx4 work 17 collect_header_tb 0 22 n5>:cXc8]H[QDAfKk[c@=3
 l76
 L14
-Z51 VhZWhjO:chd=YT`fAldbRC1
-Z52 !s100 3nU0NW`?DDM0MJ<Rfm<md0
+Z51 V7DimCih_E??I9V2HczaAB1
+Z52 !s100 FJ;gD@><>V9TcE0d@k4fB3
 R14
 32
 R41
