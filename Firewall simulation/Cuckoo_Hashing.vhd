@@ -42,7 +42,7 @@ architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
     
     --hash matching signals
     signal exits_matching,previous_search : std_logic := '0';   
-    signal matching_key : std_logic_vector(95 downto 0);
+    signal matching_key : std_logic_vector(95 downto 0):= std_logic_vector(to_unsigned(0,96)); -- TODO FIX TIL AT VÆRE BEDRE
 
         component SRAM
         port (

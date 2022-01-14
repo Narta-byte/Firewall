@@ -9,7 +9,7 @@ use STD.textio.all;
 use IEEE.std_logic_textio.all;
 
 entity Accept_Deny_tb is
-end;
+end; 
 
 
 architecture bench of Accept_Deny_tb is

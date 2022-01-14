@@ -84,7 +84,23 @@ component minfifo
           ko_cnt : out std_logic_vector(8 downto 0) --yes ændres måske senere
         );
       end component;
-
+  -- component Accept_Deny
+  --     port (
+  --     clk : in std_logic;
+  --     reset : in std_logic;
+  --     packet_forward_FIFO : in std_logic_vector(9 downto 0);
+  --     --FIFO_sop : in std_logic;
+  --     --FIFO_eop : in std_logic;
+  --     vld_fifo : in std_logic;
+  --     acc_deny : in std_logic;
+  --     vld_ad_hash : in std_logic;
+  --     rdy_ad_hash : out std_logic;
+  --     rdy_ad_FIFO : out std_logic;
+  --     data_firewall : out std_logic_vector(9 downto 0);
+  --     ok_cnt : out std_logic_vector(8 downto 0);
+  --     ko_cnt : out std_logic_vector(8 downto 0)
+  --   );
+  -- end component;
  
  
       -- Clock period
@@ -261,7 +277,7 @@ begin
       wrreq => wrreq, --= val
       empty => empty,
       full => full, -- rdy = not(full)
-      q => q,
+      q => packet_forward_FIFO,
       usedw => usedw
     );
     vld_fifo <= not full;
@@ -271,6 +287,7 @@ begin
     FIFO_sop <= q(8);
     FIFO_eop <= q(9);
     data <=  packet_forward;
+    --q <= packet_forward_FIFO;
     --
     Accept_Deny_inst : Accept_Deny
         port map (
@@ -474,8 +491,8 @@ begin
       when start_byte_stream => 
           cmd_in <= "11";
           cnt <= 0;
-          vld_hdr <= '1';
-          rdy_ad_hash <= '1'; --this simulates that the accept deny block is always ready
+          --vld_hdr <= '1';
+          --rdy_ad_hash <= '1'; --this simulates that the accept deny block is always ready
           --header_data <= "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" & key_array_sig(cnt);
           
       when comince_byte_stream => --packet_input 
@@ -488,7 +505,7 @@ begin
       
       when pause_byte_stream =>              
 
-      when terminate_match => vld_hdr <= '0';
+      when terminate_match => --vld_hdr <= '0';
 
       when test_a_wrong_header => 
         --header_data <= "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" & "00011111";
