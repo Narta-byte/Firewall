@@ -18,7 +18,7 @@ entity Collect_Header is
     rdy_FIFO : in std_logic;
     rdy_hash : in std_logic;
 
-    ready_hdr : out std_logic;
+    rdy_collecthdr : out std_logic;
     header_data : out std_logic_vector (95 downto 0);
     packet_forward : out std_logic_vector (9 downto 0);
     vld_hdr : out std_logic;
@@ -90,9 +90,9 @@ begin
 
       when packet_next =>
 
-        if rdy_FIFO = '1' and rdy_hash = '1' and bytenum_next >= 10 and bytenum_next <= 23 and vld_firewall = '1' then
+        if rdy_FIFO = '1' and rdy_hash = '1' and bytenum_next >= 11 and bytenum_next <= 24 and vld_firewall = '1' then
           next_state <= collect_header;
-        elsif bytenum_next >= 24 and SoP = '0' and header_sent = '0' then
+        elsif bytenum_next >= 25 and SoP = '0' and header_sent = '0' then
           next_state <= forward_header;
         elsif rdy_FIFO = '1' and rdy_hash = '1' and vld_firewall = '1' then
           next_state <= packet_next;
@@ -104,9 +104,9 @@ begin
 
         if rdy_FIFO = '0' or rdy_hash = '0' or vld_firewall = '0' then
           next_state <= stop_wait;
-        elsif rdy_FIFO = '1' and rdy_hash = '1' and bytenum_next >= 10 and bytenum_next <= 23 and vld_firewall = '1' then
+        elsif rdy_FIFO = '1' and rdy_hash = '1' and bytenum_next >= 11 and bytenum_next <= 24 and vld_firewall = '1' then
           next_state <= collect_header;
-        elsif rdy_FIFO = '1' and rdy_hash = '1' and bytenum_next >= 23 and vld_firewall = '1' and header_sent = '0' then 
+        elsif rdy_FIFO = '1' and rdy_hash = '1' and bytenum_next >= 24 and vld_firewall = '1' and header_sent = '0' then 
           next_state <= forward_header;
 
         elsif rdy_FIFO = '1' and rdy_hash = '1' and vld_firewall = '1' then
@@ -116,7 +116,7 @@ begin
       when collect_header =>
         if rdy_FIFO = '0' or rdy_hash = '0' or vld_firewall = '0' then
           next_state <= stop_wait;
-        elsif rdy_FIFO = '1' and rdy_hash = '1' and vld_firewall = '1' and header_sent = '0' and bytenum_next <= 23 then
+        elsif rdy_FIFO = '1' and rdy_hash = '1' and vld_firewall = '1' and header_sent = '0' and bytenum_next <= 24 then
           next_state <= collect_header;
         elsif rdy_FIFO = '1' and rdy_hash = '1' and vld_firewall = '1' then
           next_state <= forward_header;
@@ -146,9 +146,11 @@ begin
         -- Do nothing
 
       when forward_header =>
-        header_data <= srcaddr & destaddr & srcport & destport;
+        --header_data <= srcaddr & destaddr & srcport & destport;
+        header_data <= header_data_store;
         header_sent <= '1';
         packet_forward <= packet_in;
+        vld_hdr <= '1';
 
         write(current_write_line, header_data_store);
         writeline(output, current_write_line);
@@ -166,6 +168,7 @@ begin
           store3 <= x"00";
           header_data <= x"000000000000000000000000";
           header_data_store <= x"000000000000000000000000";
+          --ready_collecthdr <= '0';
           packet_num <= packet_num + 1;
         end if;
         wipe_cnt <= SoP;
@@ -173,54 +176,55 @@ begin
         hdr_SoP <= SoP;
         packet_forward <= packet_in;
         hdr_EoP <= EoP;
+        vld_hdr <= '0';
 
       when collect_header =>
         bytenum_next <= bytenum + 1;
         packet_forward <= packet_in;
 
-        if bytenum_next >= 11 and bytenum_next <= 14 then -- SRCADDR
-          if bytenum_next = 11 then
+        if bytenum_next >= 12 and bytenum_next <= 15 then -- SRCADDR
+          if bytenum_next = 12 then
             store1 <= packet_in (9 downto 2);
           end if;
-          if bytenum_next = 12 then
+          if bytenum_next = 13 then
             store2 <= packet_in (9 downto 2);
           end if;
-          if bytenum_next = 13 then
+          if bytenum_next = 14 then
             store3 <= packet_in (9 downto 2);
           end if;
 
           srcaddr <= store1 & store2 & store3 & packet_in(9 downto 2);
         end if;
 
-        if bytenum_next >= 15 and bytenum_next <= 18 then -- DESTADDR
-          if bytenum_next = 15 then
+        if bytenum_next >= 16 and bytenum_next <= 19 then -- DESTADDR
+          if bytenum_next = 16 then
             store1 <= packet_in(9 downto 2);
           end if;
-          if bytenum_next = 16 then
+          if bytenum_next = 17 then
             store2 <= packet_in(9 downto 2);
           end if;
-          if bytenum_next = 17 then
+          if bytenum_next = 18 then
             store3 <= packet_in(9 downto 2);
           end if;
 
           destaddr <= store1 & store2 & store3 & packet_in(9 downto 2);
         end if;
 
-        if bytenum_next >= 19 and bytenum_next <= 20 then -- SRCPORT
-          if bytenum_next = 19 then
+        if bytenum_next >= 20 and bytenum_next <= 21 then -- SRCPORT
+          if bytenum_next = 20 then
             store1 <= packet_in(9 downto 2);
           end if;
           srcport <= store1 & packet_in(9 downto 2);
         end if;
 
-        if bytenum_next >= 21 and bytenum_next <= 22 then -- DESTPORT
-          if bytenum_next = 21 then
+        if bytenum_next >= 22 and bytenum_next <= 23 then -- DESTPORT
+          if bytenum_next = 22 then
             store1 <= packet_in(9 downto 2);
           end if;
           destport <= store1 & packet_in(9 downto 2);
         end if;
 
-        if bytenum_next = 23 then
+        if bytenum_next = 24 then
           header_data_store <= srcaddr & destaddr & srcport & destport;
         end if;
 

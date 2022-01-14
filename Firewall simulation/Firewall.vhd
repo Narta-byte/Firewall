@@ -1,11 +1,13 @@
 library IEEE;
-library std;
+library std; 
+--LIBRARY altera_mf;
 use IEEE.std_logic_1164.all;
 use IEEE.numeric_std.all;
 use ieee.std_logic_unsigned.all;
 use std.textio.all;
 use STD.textio.all;
 use IEEE.std_logic_textio.all;
+--USE altera_mf.all;
 
 entity firewall is
 end entity;
@@ -98,12 +100,14 @@ component minfifo
   signal vld_firewall : std_logic := '0';
   signal rdy_FIFO : std_logic := '0';
   signal rdy_hash : std_logic := '0';
-  signal rdy_collecthdr : std_logic := '0';
+  signal rdy_collecthdr : std_logic:='0';
   signal header_data : std_logic_vector (95 downto 0) := x"000000000000000000000000";
   signal packet_forward : std_logic_vector (9 downto 0) := "0000000000";
   signal vld_hdr : std_logic := '0';
   signal hdr_SoP : std_logic := '0';
   signal hdr_EoP : std_logic := '0';
+  signal entire_packet : std_logic_vector (9 downto 0);
+  
 
   --cuckoo
   
@@ -165,11 +169,20 @@ component minfifo
 
   signal data_end,done_looping,last_rdy,calc_is_done : std_logic :='0';
 
+
+  -- file management
+  constant data_length_keys : integer := 160;
+  constant data_length_packet : integer := 38689;
+  
+
   --output logic signals 
   signal cnt : integer;
-  type data_array is array (0 to 160) of std_logic_vector(95 downto 0);
-  signal data_array_sig : data_array;
+  type key_array is array (0 to data_length_keys) of std_logic_vector(95 downto 0);
+  signal key_array_sig : key_array;
 
+  type packet_array is array (0 to data_length_packet) of std_logic_vector(9 downto 0);
+  signal packet_array_sig : packet_array;
+  
   --signals in hashmatching
   signal byte_stream_done : std_logic := '0'; 
   signal cnt_calc_fin : integer := 0;
@@ -184,6 +197,10 @@ component minfifo
   signal bits1 : std_logic_vector (0 downto 0);
   signal bits2 : std_logic_vector (0 downto 0);
   signal packet_data : std_logic_vector(7 downto 0);
+
+  signal bytenumber : integer := 0;
+  signal nextbytenum : integer := 0;
+  
   
   --signals for ac
   
@@ -215,6 +232,9 @@ begin
     hdr_SoP => hdr_SoP, -- kan ikke implementeres pt
     hdr_EoP => hdr_EoP -- kan ikke implementeres pt
   );
+  SoP <= packet_in(1);
+  EoP <= packet_in(0);
+
 
     Cuckoo_Hashing_inst : Cuckoo_Hashing
     port map (
@@ -271,12 +291,18 @@ begin
           ko_cnt => ko_cnt
         );
     
+
+        
+
+
+
      STATE_MEMORY_LOGIC : process (clk, reset)
     begin
         if reset = '1' then
             current_state <= setup_rulesearch;
         elsif rising_edge(clk) then
             current_state <= next_state;
+            bytenumber <= nextbytenum;
         end if ;
     end process;  
     
@@ -327,28 +353,16 @@ begin
 
 
         when comince_byte_stream => 
-        --     if byte_stream_done = '1' then
-        --         next_state <= terminate_match;
-        --     elsif vld_firewall = '0' then
-        --         next_state <= pause_byte_stream;
-        --     end if ;
-        
-        if doneloop = '1' then
+          if byte_stream_done = '1' then
             next_state <= terminate_match;
-          elsif rdy_FIFO = '0' or rdy_hash = '0' or vld_firewall = '0' then
+          elsif rdy_FIFO = '0'  or vld_firewall = '0' then
             next_state <= pause_byte_stream;          
           elsif rdy_FIFO = '1' and rdy_hash = '1' and vld_firewall = '1' then
             next_state <= comince_byte_stream;
           end if;
         
         when pause_byte_stream => 
-        --   if byte_stream_done = '1' then
-        --     next_state <= terminate_match;
-        --   elsif  (vld_firewall = '1')  then
-        --     --next_st;
-        --   end if ;
-
-        if rdy_FIFO = '0' or rdy_hash = '0' or vld_firewall = '0' then
+        if rdy_FIFO = '0' or vld_firewall = '0' then
             next_state <= terminate_match;
           elsif rdy_FIFO = '1' and rdy_hash = '1' and vld_firewall = '1' then
             next_state <= comince_byte_stream;
@@ -362,7 +376,7 @@ begin
       end case;
   end process;
 
-  OUTPUT_LOGIC : process (current_state)
+  OUTPUT_LOGIC : process (current_state, bytenumber)
   file input : TEXT open READ_MODE is "keys_to_be_programmed.txt";
   variable current_read_line_keys : line;
   variable std_logic_vector_reader : std_logic_vector(95 downto 0);
@@ -370,13 +384,16 @@ begin
   file input_packet : TEXT open READ_MODE is "Input_packet.txt"; 
   variable current_read_line	: line;
   variable current_read_field	: std_logic_vector (7 downto 0);
-  variable current_write_line : std_logic_vector (0 downto 0);
+  variable current_bit_read_SoP : std_logic_vector (0 downto 0);
+  variable current_bit_read_EoP : std_logic_vector (0 downto 0);
   variable start_of_data_Reader : std_logic;
 
+  variable var_cnt : integer:=0;
   
   file output : text open WRITE_MODE is "DEBUG_OUTPUT.txt";
   variable write_line : line;
-  begin     
+  begin
+    nextbytenum <= bytenumber;
       case current_state is
       when setup_rulesearch => 
         set_rule <= '1';
@@ -384,16 +401,50 @@ begin
       
       when set_keys_and_read_input_packets =>
        
-          READ_ARRAY : for i in 0 to 160 loop
+          READ_ARRAY : for i in 0 to data_length_keys loop
             if not ENDFILE(input) then
               
               readline(input, current_read_line_keys);
               READ(current_read_line_keys, std_logic_vector_reader);
               
-              data_array_sig(i) <= std_logic_vector_reader; 
+              key_array_sig(i) <= std_logic_vector_reader;
               end if ; 
            
           end loop ; -- READ_ARRAY 
+
+          READ_INPUT_PACKET : for i in 0 to data_length_packet loop
+            if not ENDFILE(input_packet) then
+              readline(input_packet, current_read_line);
+              hread(current_read_line, current_read_field);
+              --hex12 <= current_read_field;
+              
+              read(current_read_line, current_bit_read_SoP);
+              --bits1 <= current_bit_read;
+              -- if current_bit_read_SoP = "1" then
+              --   SoP <= '1';
+              -- else
+              --   SoP <= '0';
+              -- end if;
+              
+              read(current_read_line, current_bit_read_EoP);
+              --bits2<= current_bit_read;
+              -- if current_bit_read_EoP = "1" then
+              --   EoP <= '1';
+              -- else
+              --   EoP <= '0';
+              -- end if;
+                
+              --packet_in <= hex12 & bits1 & bits2;
+              --entire_packet <= current_read_field & current_bit_read_SoP & current_bit_read_EoP;
+              packet_array_sig(i) <= current_read_field & current_bit_read_SoP & current_bit_read_EoP;
+              packet_data <= hex12;
+                    
+            else
+              doneloop <= '1';
+            end if;
+          end loop ; -- READ_INPUT_PACKET
+
+
 
         done_looping <= '1';
         cmd_in <= "01";
@@ -402,9 +453,12 @@ begin
       when wait_for_ready_insert => 
             
       when send_key =>
-          key_in <= data_array_sig(cnt);
+          key_in <= key_array_sig(cnt);
           cnt <= cnt+1;
-          if cnt = 160 then
+
+          if cnt = data_length_keys 
+      
+      then
             data_end <= '1';
             
           end if ;
@@ -422,44 +476,22 @@ begin
           cnt <= 0;
           vld_hdr <= '1';
           rdy_ad_hash <= '1'; --this simulates that the accept deny block is always ready
-          --header_data <= "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" & data_array_sig(cnt); 
+          --header_data <= "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" & key_array_sig(cnt);
           
       when comince_byte_stream => --packet_input 
-      if not (endfile(input_packet)) then                      -- Skal vi lave tilhørende signaler her? Eller kan vi bruge fra collectheader_TB på en en måde?
-        packet_start <= '1';
-        bytenm <= bytenm + 1;
-        readline(input_packet, current_read_line);
-        hread(current_read_line, current_read_field);
-        hex12 <= current_read_field;
-
-        read(current_read_line, current_write_line);
-        bits1 <= current_write_line;
-        if bits1 = "1" then
-          SoP <= '1';
-        else
-          SoP <= '0';
-        end if;
-        
-        read(current_read_line, current_write_line);
-        bits2<= current_write_line;
-        if bits2 = "1" then
-          EoP <= '1';
-        else
-          EoP <= '0';
-        end if;
-
-        packet_in <= hex12 & bits1 & bits2; 
-        packet_data <= hex12;
-    else
-      doneloop <= '1';
-    end if;
-
-      when pause_byte_stream =>             
+      set_rule <= '0';
+      nextbytenum <= bytenumber +1;
+      packet_in <= packet_array_sig(nextbytenum);
+        if nextbytenum = data_length_packet-1 then
+          byte_stream_done <= '1';
+        end if ;
+      
+      when pause_byte_stream =>              
 
       when terminate_match => vld_hdr <= '0';
 
       when test_a_wrong_header => 
-        header_data <= "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" & "00011111";
+        --header_data <= "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" & "00011111";
 
       when wait_for_bytestream_to_fin => 
       
@@ -470,6 +502,20 @@ begin
    
   end process;
 
+  TestInputs : process 
+  begin
+    rdy_FIFO <= '1'; wait for 1390 ns;
+--    ready_FIFO <= '1'; wait for 10000 ns;
+    rdy_FIFO <= '0'; wait for 10 ns;  
+    rdy_FIFO <= '1'; wait;
+
+  end process;
+
+  testvld : process 
+  begin
+    vld_firewall <= '1'; wait;
+    
+  end process;
 
 
     end; 
