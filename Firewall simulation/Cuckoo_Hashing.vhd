@@ -33,20 +33,37 @@ end Cuckoo_Hashing ;
 
 architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
 
-    type State_type is (command_state, hash_matching, lookup_hash1,lookup_hash2,insert_key,remember_and_replace
-,ERROR,is_occupied,rdy_key,flush_memory,rdy_for_match,search_hash1,search_hash2,matching,AD_communication);
+    type State_type is (
+    command_state, 
+    hash_matching, 
+    lookup_hash1,
+    lookup_hash2,
+    insert_key,
+    remember_and_replace,
+    ERROR,is_occupied,
+    rdy_key,
+    flush_memory,
+    rdy_for_match,
+    search_hash1,
+    search_hash2,
+    matching,
+    AD_communication);
+
     signal current_state, next_state : State_type;
     
     signal exits_cuckoo,insert_flag,hashfun,flip,flush_flag,eq_key : std_logic := '0';
     signal MAX : integer:= 0;
     
+    --CONSTANTS
+    constant MAX_ITER : integer:= 31;
+
     --hash matching signals
     signal exits_matching,previous_search : std_logic := '0';   
     signal matching_key : std_logic_vector(95 downto 0):= std_logic_vector(to_unsigned(0,96)); -- TODO FIX TIL AT VÆRE BEDRE
 
         component SRAM
         port (
-            clk : in std_logic;
+        clk : in std_logic;
         reset : in std_logic;
         flush_sram : in std_logic;
         RW : in std_logic;
@@ -70,8 +87,8 @@ architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
       
 
       --crc fun
-    signal g1       : std_logic_vector(8 downto 0) := "100101111";
-    signal g2	    : std_logic_vector(8 downto 0) := "101001001";
+      signal g1       : std_logic_vector(8 downto 0) := "100101111";
+      signal g2	    : std_logic_vector(8 downto 0) := "101001001";
 
     function calc_hash (M : std_logic_vector; g : std_logic_vector)
         return std_logic_vector is
@@ -131,7 +148,7 @@ architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
         end if ;
     end process;
 
-    NEXT_STATE_LOGIC : process (current_state, insert_flag, set_rule, vld_firewall_hash, exits_cuckoo, max, flip,flush_flag, 
+    NEXT_STATE_LOGIC : process (current_state, insert_flag, set_rule, vld_firewall_hash, exits_cuckoo, MAX, flip,flush_flag, 
                                 previous_search, exits_matching, vld_hdr)
     begin
         next_state <= current_state;
@@ -174,7 +191,7 @@ architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
                         end if;
 
                     when lookup_hash2 => next_state <= is_occupied;
-                    when remember_and_replace => if max = 31 then
+                    when remember_and_replace => if MAX = MAX_ITER then
                         next_state <= ERROR;
                     elsif flip = '1' then
                         next_state <= lookup_hash1;
@@ -249,7 +266,7 @@ architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
                             end if ;
                         rdy_firewall_hash <= '1'; 
                         insertion_key<=key_in;
-                        max <= 0;
+                        MAX <= 0;
                         eq_key <= '0';
                             
                     when lookup_hash1 =>
@@ -276,7 +293,7 @@ architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
                         RW <= '1';
                         data_in <= insertion_key;
                         insertion_key <= data_out(95 downto 0);
-                        max <= max + 1;
+                        MAX <= MAX + 1;
                         if flip = '1' then
                             flip <= '0';
                         else
@@ -304,12 +321,12 @@ architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
                     when matching => 
                     if data_out(95 downto 0) = matching_key then
                         exits_matching <= '1';
-                        acc_deny_hash <= '1';
+                        acc_deny_hash <= '0';
                         DEBUG_KO_CNT <= DEBUG_KO_CNT +1; 
                     else
                         if previous_search = '1' then
                             DEBUG_OK_CNT <= DEBUG_OK_CNT+1;
-                            acc_deny_hash <= '0';
+                            acc_deny_hash <= '1';
                         end if ;
                         exits_matching <= '0';
                     end if;

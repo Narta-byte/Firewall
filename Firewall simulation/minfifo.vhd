@@ -37,7 +37,7 @@
 LIBRARY ieee;
 USE ieee.std_logic_1164.all;
 
-LIBRARY altera_mf;
+LIBRARY altera_mf; 
 USE altera_mf.all;
 
 ENTITY minfifo IS

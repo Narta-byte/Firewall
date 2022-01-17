@@ -356,7 +356,7 @@ begin
         when comince_byte_stream => 
           if byte_stream_done = '1' then
             next_state <= terminate_match;
-          elsif rdy_FIFO = '0'  or vld_firewall = '0' then
+          elsif rdy_FIFO = '0'  or vld_firewall = '0' or rdy_hash ='0' then
             next_state <= pause_byte_stream;          
           elsif rdy_FIFO = '1' and rdy_hash = '1' and vld_firewall = '1' then
             next_state <= comince_byte_stream;

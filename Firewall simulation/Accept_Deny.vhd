@@ -45,25 +45,6 @@ architecture arch_Accept_Deny of Accept_Deny is
     type state_type is (wait_hash, accept_and_forward, deny_and_delete);
     signal current_state, next_state : state_type;
 
-    -- -- Component decleration 
-    -- component minfifo is
-    --     port (
-    --         clock       : in std_logic;
-    --         data		: IN STD_LOGIC_VECTOR (9 DOWNTO 0);
-    --         rdreq		: IN STD_LOGIC ;
-    --         wrreq		: IN STD_LOGIC ;
-    --         empty		: OUT STD_LOGIC ;
-    --         full		: OUT STD_LOGIC ;
-    --         q			: OUT STD_LOGIC_VECTOR (9 DOWNTO 0);
-    --         usedw		: OUT STD_LOGIC_VECTOR (7 DOWNTO 0)
-    --     );
-    -- end component;
-
-    -- -- Signals for portmapping 
-    -- signal data : std_logic_vector(9 downto 0);
-    -- signal rdreq, wrreq, empty, full : std_logic;
-    -- signal q : std_logic_vector(9 downto 0);
-    -- signal usedw : std_logic_vector(7 downto 0);  
 
     -- Test signals  
     signal int_ok      : integer := 0; 
@@ -159,8 +140,8 @@ begin
         OUTPUT_LOGIC : process (current_state, vld_ad_hash, acc_deny_hash, vld_fifo)
         begin
             data_firewall <= (others=>'0');
-            rdy_ad_hash <= '0';
-            rdy_ad_FIFO <= '0';
+            --rdy_ad_hash <= '0';
+            --rdy_ad_FIFO <= '0';
             int_ok_next <= int_ok;
             int_ko_next <= int_ko;
 
@@ -179,12 +160,12 @@ begin
                         -- rdy_ad_FIFO <= '1';
 
                     when accept_and_forward => 
-                        if acc_deny_hash = '1'  then 
+                        --if acc_deny_hash = '1'  then 
                             data_firewall <= packet_forward_FIFO;
-                            rdy_ad_hash <= '0';
+                            --rdy_ad_hash <= '0';
                             rdy_ad_FIFO <= '1'; 
                             --rdy_ad_FIFO <= '0'; 
-                        end if;
+                        --end if;
                             int_ok_next <= int_ok + 1;
 
                     when deny_and_delete => 
