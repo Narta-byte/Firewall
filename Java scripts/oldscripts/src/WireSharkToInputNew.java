@@ -3,14 +3,17 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Scanner;
-// C:\Users\Asger\3-ugers\Firewall\Java scripts\oldscripts\Data.txt
+// C:/Users/Asger/3-ugers/Firewall/Java scripts/oldscripts/Data.txt
 public class WireSharkToInputNew {
     public static void main(String[] args) {
         try {
 //            Scanner reader = new Scanner(new File("Data.txt"));
-            Scanner reader = new Scanner(new File("C:/Users/Asger/3-ugers/Firewall/Java scripts/oldscripts/Data.txt"));
+            //Scanner reader = new Scanner(new File("C:/Users/Asger/3-ugers/Firewall/Java scripts/oldscripts/Data.txt"));
+            
+            Scanner reader = new Scanner(new File("C:/Users/Mig/Desktop/Hardware projekt/Firewall/Java scripts/oldscripts/Data.txt"));
 //            FileWriter writer = new FileWriter(new File("new_input_file.txt"));
-            FileWriter writer = new FileWriter(new File("C:/Users/Asger/3-ugers/Firewall/Java scripts/oldscripts/src/new_input_file.txt"));
+            //FileWriter writer = new FileWriter(new File("C:/Users/Asger/3-ugers/Firewall/Java scripts/oldscripts/src/new_input_file.txt"));
+            FileWriter writer = new FileWriter(new File("C:/Users/Mig/Desktop/Hardware projekt/Firewall/Java scripts/oldscripts/input_file.txt"));
             String str = "";
             String line = "";
             while (reader.hasNextLine()) {
@@ -26,8 +29,8 @@ public class WireSharkToInputNew {
                         line = line.substring(3,line.length());
                     }
 
-                    // str = str + line.substring(0,3)+"0 1\n";
-                    // line = line.substring(3,line.length());
+                    str = str + line.substring(0,3)+"0 1\n";
+                    //line = line.substring(3,line.length());
 
                     System.out.println(line);
                     System.out.println(str);

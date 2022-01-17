@@ -10,6 +10,7 @@ entity SRAM is
     clk : in std_logic;
     reset : in std_logic;
     flush_sram : in std_logic;
+    occupied : in std_logic;
     RW : in std_logic;
     address : in std_logic_vector(8 downto 0);
     data_in : in std_logic_vector(95 downto 0);
@@ -34,7 +35,7 @@ begin
     elsif rising_edge(clk) then
       
       if RW = '1' then
-        WE(to_integer(unsigned(address))) <= '1' & data_in;
+        WE(to_integer(unsigned(address))) <= '1' & data_in; --fix til at bruge occupied
       else
       data_out <= WE(to_integer(unsigned(address)));
       end if ;

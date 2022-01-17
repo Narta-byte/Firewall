@@ -58,32 +58,31 @@ component minfifo
       port (
       clock : in STD_LOGIC;
       data : in STD_LOGIC_VECTOR (9 DOWNTO 0);
-      rdreq : in STD_LOGIC; -- Michael, hjælp!
-      wrreq : in STD_LOGIC; --Michael, hjælp!
-      empty : out STD_LOGIC; --Michail, hilfe!
-      full : out STD_LOGIC;--Michail, hilfe!
-      q : out STD_LOGIC_VECTOR (9 DOWNTO 0);--Michail, hilfe!
-      usedw : out STD_LOGIC_VECTOR (7 DOWNTO 0)--Michail, hilfe!
+      rdreq : in STD_LOGIC;
+      wrreq : in STD_LOGIC;
+      empty : out STD_LOGIC;
+      full : out STD_LOGIC;
+      q : out STD_LOGIC_VECTOR (9 DOWNTO 0);
+      usedw : out STD_LOGIC_VECTOR (7 DOWNTO 0)
     );
   end component;
 
   component Accept_Deny
           port (
-          clk : in std_logic; --yes
-          reset : in std_logic; --yes
-          packet_forward_FIFO : in std_logic_vector(9 downto 0); --yes
-          --FIFO_sop : in std_logic; 
-          --FIFO_eop : in std_logic; 
-          vld_fifo : in std_logic; --yes
-          acc_deny_hash : in std_logic; --yes
-          vld_ad_hash : in std_logic; --yes
-          rdy_ad_hash : out std_logic; --yes
-          rdy_ad_FIFO : out std_logic; -- micheal hjælp
-          data_firewall : out std_logic_vector(9 downto 0); --yes
-          --out_sop : out std_logic; 
-          --out_eop : out std_logic;
-          ok_cnt : out std_logic_vector(8 downto 0); --yes ændres måske senere
-          ko_cnt : out std_logic_vector(8 downto 0) --yes ændres måske senere
+          clk : in std_logic; 
+          reset : in std_logic; 
+
+          data_firewall : out std_logic_vector(9 downto 0);
+          ok_cnt : out std_logic_vector(8 downto 0);
+          ko_cnt : out std_logic_vector(8 downto 0);
+
+          packet_forward_FIFO : in std_logic_vector(9 downto 0); 
+          rdy_ad_FIFO : out std_logic; 
+          vld_fifo : in std_logic;  
+          
+          acc_deny_hash : in std_logic; 
+          vld_ad_hash : in std_logic; 
+          rdy_ad_hash : out std_logic    
         );
       end component;
   
@@ -133,17 +132,15 @@ component minfifo
   signal usedw : STD_LOGIC_VECTOR (7 DOWNTO 0); -- 8?
 
 
-  --accept deny
-  --signal clk : std_logic;
-  --signal reset : std_logic;
+  -- Accept deny
   signal packet_forward_FIFO : std_logic_vector(9 downto 0) := "0000000000";
   signal FIFO_sop : std_logic; --
   signal FIFO_eop : std_logic; --
-  signal vld_fifo : std_logic; -- micheal hjælp
+  signal vld_fifo : std_logic;
   --signal acc_deny_hash : std_logic; 
   --signal vld_ad_hash : std_logic; 
   --signal rdy_ad_hash : std_logic;
-  signal rdy_ad_FIFO : std_logic; -- micheal hjælp
+  signal rdy_ad_FIFO : std_logic;
   signal data_firewall : std_logic_vector(9 downto 0) := "0000000000";
   signal ok_cnt : std_logic_vector(8 downto 0) := "000000000";
   signal ko_cnt : std_logic_vector(8 downto 0) := "000000000";
@@ -168,12 +165,12 @@ component minfifo
 
   signal data_end,done_looping,last_rdy,calc_is_done : std_logic :='0';
 
-
   -- file management
-  constant data_length_keys : integer := 160;
-  constant data_length_packet : integer := 38689;
+  --constant data_length_keys : integer := 160;
+  --constant data_length_packet : integer := 38689;
+  constant data_length_keys : integer := 85;
+  constant data_length_packet : integer := 38688;
   
-
   --output logic signals 
   signal cnt : integer;
   type key_array is array (0 to data_length_keys) of std_logic_vector(95 downto 0);
@@ -187,11 +184,11 @@ component minfifo
   signal cnt_calc_fin : integer := 0;
 
   --signals in byte stream
-
   signal doneloop : std_logic;
   signal bytenm : integer := 0;
   signal packet_start : std_logic := '0';
   signal hex12 : std_logic_vector (7 downto 0);
+
   --signal h2 : std_logic_vector (3 downto 0);
   signal bits1 : std_logic_vector (0 downto 0);
   signal bits2 : std_logic_vector (0 downto 0);
@@ -200,8 +197,6 @@ component minfifo
   signal bytenumber : integer := 0;
   signal nextbytenum : integer := 0;
   
-  
-  --signals for ac
   
 begin
   
@@ -216,18 +211,18 @@ begin
 
   Collect_Header_inst : Collect_Header
   port map (
-    clk => clk, --yes
-    reset => reset, --yes
-    packet_in => packet_in, --yes
-    SoP => SoP, --yes
-    EoP => EoP, --yes
-    vld_firewall => vld_firewall, --yes
+    clk => clk,
+    reset => reset, 
+    packet_in => packet_in, 
+    SoP => SoP, 
+    EoP => EoP, 
+    vld_firewall => vld_firewall,
     rdy_FIFO => rdy_FIFO, -- skal vare sit eget signal
     rdy_hash => rdy_hash, -- vi har signal
-    rdy_collecthdr => rdy_collecthdr, --yes
+    rdy_collecthdr => rdy_collecthdr, 
     header_data => header_data, --yes burde virke
     packet_forward => packet_forward, -- kan ikke implementeres pt
-    vld_hdr => vld_hdr, -- yes
+    vld_hdr => vld_hdr, 
     vld_hdr_FIFO => vld_hdr_FIFO,
     hdr_SoP => hdr_SoP, -- kan ikke implementeres pt
     hdr_EoP => hdr_EoP -- kan ikke implementeres pt
@@ -271,33 +266,27 @@ begin
     --FIFO_sop <= q(8);
     --FIFO_eop <= q(9);
     data <=  packet_forward;
-    --q <= packet_forward_FIFO;
-    --
+
     Accept_Deny_inst : Accept_Deny
         port map (
           clk => clk,
           reset => reset,
+          
+          data_firewall => data_firewall,
+          ok_cnt => ok_cnt,
+          ko_cnt => ko_cnt,
+          
           packet_forward_FIFO => packet_forward_FIFO,
-          --FIFO_sop => FIFO_sop,
-          --FIFO_eop => FIFO_eop,
           vld_fifo => vld_fifo,
+          rdy_ad_FIFO => rdy_ad_FIFO,
+
           acc_deny_hash => acc_deny_hash,
           vld_ad_hash => vld_ad_hash,
-          rdy_ad_hash => rdy_ad_hash,
-          rdy_ad_FIFO => rdy_ad_FIFO,
-          data_firewall => data_firewall,
-          --out_sop => out_sop,
-          --out_eop => out_eop,
-          ok_cnt => ok_cnt,
-          ko_cnt => ko_cnt
+          rdy_ad_hash => rdy_ad_hash
         );
     
 
-        
-
-
-
-     STATE_MEMORY_LOGIC : process (clk, reset)
+    STATE_MEMORY_LOGIC : process (clk, reset)
     begin
         if reset = '1' then
             current_state <= setup_rulesearch;
@@ -312,7 +301,8 @@ begin
                               data_end,calc_is_done,
                               rdy_hash,
                               vld_hdr, cnt_calc_fin,
-                              rdy_ad_hash)
+                              rdy_ad_hash,
+                              byte_stream_done)
   begin
     next_state <= current_state; -- måske sus
       case current_state is
@@ -378,11 +368,12 @@ begin
   end process;
 
   OUTPUT_LOGIC : process (current_state, bytenumber)
-  file input : TEXT open READ_MODE is "keys_to_be_programmed.txt";
+  file input : TEXT open READ_MODE is "keys_to_be_programmed 2.txt";
   variable current_read_line_keys : line;
   variable std_logic_vector_reader : std_logic_vector(95 downto 0);
   
-  file input_packet : TEXT open READ_MODE is "Input_packet.txt"; 
+  --file input_packet : TEXT open READ_MODE is "Input_packet.txt"; 
+  file input_packet : TEXT open READ_MODE is "packet input tcp syn ack.txt";  
   variable current_read_line	: line;
   variable current_read_field	: std_logic_vector (7 downto 0);
   variable current_bit_read_SoP : std_logic_vector (0 downto 0);
@@ -417,26 +408,11 @@ begin
             if not ENDFILE(input_packet) then
               readline(input_packet, current_read_line);
               hread(current_read_line, current_read_field);
-              --hex12 <= current_read_field;
               
               read(current_read_line, current_bit_read_SoP);
-              --bits1 <= current_bit_read;
-              -- if current_bit_read_SoP = "1" then
-              --   SoP <= '1';
-              -- else
-              --   SoP <= '0';
-              -- end if;
-              
+            
               read(current_read_line, current_bit_read_EoP);
-              --bits2<= current_bit_read;
-              -- if current_bit_read_EoP = "1" then
-              --   EoP <= '1';
-              -- else
-              --   EoP <= '0';
-              -- end if;
-                
-              --packet_in <= hex12 & bits1 & bits2;
-              --entire_packet <= current_read_field & current_bit_read_SoP & current_bit_read_EoP;
+             
               packet_array_sig(i) <= current_read_field & current_bit_read_SoP & current_bit_read_EoP;
               packet_data <= hex12;
                     
@@ -484,7 +460,7 @@ begin
       set_rule <= '0';
       nextbytenum <= bytenumber +1;
       packet_in <= packet_array_sig(nextbytenum);
-        if nextbytenum = data_length_packet-1 then
+        if bytenumber = data_length_packet-1 then
           byte_stream_done <= '1';
         end if ;
       
@@ -594,4 +570,24 @@ begin
     -- //                       .;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;,
 
 
+-- //                                                       ..,;;:::::...,,,,:,,,,,,,,
+-- //                                                     .,::,,::.1:.
+-- //              ,,..        ;;:;,:::,.                .:,:  ,,. ,..
+-- //         .1CCi:t;::,     ,1;::itttti:               ,,,. ,.
+-- //        :GCCf1i111ii;.   .   .::11ii;.              ..,.
+-- //       .CLffttffLLft1i. .   ,:::ii:,:.    ..... ..     .
+-- //       tC1LttffftLL1;::.   ,;1tii1ti;    i111,.,,:.    .:,           ..
+-- //      ,ti1t;iii::1fi;;::   :;;;;;ii;.    :;i:,::;;.     ;LCffftff1i1Lt.         .
+-- //    ,,;;,;::i111tttttfi:.  .itfftLL1:::. :i: :;:::.      18@@@@@@@0Gf.
+-- // itLft;;;;:;i11tfttt1ii, ,1CGGCCCLLCCLt. ,:. .,,:,      .GGG80LG8888:
+-- // 1t:,:if1;1;;i1i1i::,:;;L088CfLC0fi;1;  ,,.    .,.      ,LCtL00GG08@i
+-- // ;: ,1GC::;,:;i1tii11itGCCLtfLLCCf;,,:  ,,  .   .,      .ft;i;ifCCGG:
+-- // i:tG0GftLtf1:::i111fCGft1,.:tti,.         .     .    .:;1tftttttttti;;:;:.  ....
+-- // ;it;;:,.:;i;,ii.,1C0GCCi.   .,.                     ,t1...;111LLfftii;;t1i,tCGCf
+-- // 1;,        .;;iifGGCCCi    ..,,                .  .:,..       ....,,,.,.,ifLffi:
+-- // CCCL,:fLfi, :1L0GCLLf;      .,.                    ....,,,::,,,,,,,::1ttiitLfttt
+-- // 1ii:.C8008GiLGCCLfff;       .,.       ..    ......          ::i;::;:,iLLLLCLLLLf
+-- // ;11:1C0000GCCLLfftf;        .,.       ..,:,,,;;:;;;;;;;;iii1fLCLLCLt1it1ttttt1t1
+-- // :;;;iffGCCLffftttt;..        .      .. .,,.........,,,,,:itLttffttfttt1111111i;;
+-- //   .: :tLLfftttt1i, .         ,.    ...  ..,,........... ,i1fii1t1111111t1i11tt;t
 

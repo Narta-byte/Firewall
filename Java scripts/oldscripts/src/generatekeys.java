@@ -8,7 +8,8 @@ public class generatekeys {
     public static void main(String[] args) {
 
         try {
-            FileWriter writer = new FileWriter(new File("C:/Users/Asger/3-ugers/Firewall/data_keys.txt"));
+            //FileWriter writer = new FileWriter(new File("C:/Users/Asger/3-ugers/Firewall/data_keys.txt"));
+            FileWriter writer = new FileWriter(new File("C:/Users/Mig/Desktop/Hardware projekt/Firewall/Java scripts/data_keys.txt"));
         
             String str = "0";
             String fil = "";

@@ -141,6 +141,7 @@ begin
   OUTPUT_LOGIC : process (current_state, SoP, EoP, bytenum)
     file output : TEXT open WRITE_MODE is "headerdata.txt";
     variable current_write_line : line;
+
   begin
     bytenum_next <= bytenum;
     case current_state is
@@ -185,6 +186,7 @@ begin
         hdr_EoP <= EoP;
         vld_hdr <= '0';
         vld_hdr_FIFO <= '1';
+        rdy_collecthdr <= '1';
 
       when collect_header =>
         bytenum_next <= bytenum + 1;
@@ -237,6 +239,7 @@ begin
         end if;
 
       when stop_wait =>
+      rdy_collecthdr <= '1';
         -- Wait for signals to pop up
 
       when others =>
