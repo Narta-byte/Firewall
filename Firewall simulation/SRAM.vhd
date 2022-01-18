@@ -42,13 +42,5 @@ begin
     end if ;
   end process;
 
-DEBUG_OUTPUT : process (clk,address)
-file output : text open WRITE_MODE is "DEBUG_OUTPUT.txt";
-  variable write_line : line;
-begin
-  if rising_edge(clk) then
-    write(write_line,address);
-      writeline(output,write_line);
-  end if;
-end process;
+
 end architecture ; -- SRAM_arch

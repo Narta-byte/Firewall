@@ -145,10 +145,19 @@ component minfifo
   signal ok_cnt : std_logic_vector(8 downto 0) := "000000000";
   signal ko_cnt : std_logic_vector(8 downto 0) := "000000000";
 
+  --test signals
+  signal test1_fin,test2_fin,test3_fin : std_logic := '0';
+  
+
+
     -- cuckoo hash tb copy paste
-  type State_type is (setup_rulesearch,
-                      set_keys_and_read_input_packets,wait_for_ready_insert,
-                      send_key,terminate_insertion,
+  type State_type is (  
+                        --test 1
+                      setup_rulesearch,
+                      set_keys_and_read_input_packets,
+                      wait_for_ready_insert,
+                      send_key,
+                      terminate_insertion,
                       wait_for_last_calc_to_finish,
                       goto_cmd_state,
                       start_byte_stream,
@@ -156,10 +165,11 @@ component minfifo
                       comince_byte_stream_to_accept,
                       pause_byte_stream_to_accept,
                       comince_byte_stream,
-
                       terminate_match,
                       test_a_wrong_header,
                       wait_for_bytestream_to_fin
+
+                      --test 2
                         );
   signal current_state, next_state : State_type;
 
@@ -466,7 +476,7 @@ begin
       
       when pause_byte_stream =>              
 
-      when terminate_match => --vld_hdr <= '0';
+      when terminate_match => test1_fin <= '1';
 
       when test_a_wrong_header => 
         --header_data <= "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" & "00011111";
@@ -489,6 +499,24 @@ begin
 
   end process;
 
+  TEST_OUTPUT : process (test1_fin)
+  begin
+    --if rising_edge(clk) then
+      if test1_fin = '1' then
+        if ok_cnt = 85 and ko_cnt = 4 then
+          report "TEST 1 PASSED" severity NOTE;
+        else
+          report "TEST 1 FAILED" severity ERROR;
+        --end if ;
+        
+
+
+      end if ;
+
+
+    end if ;
+
+  end process;
   -- testvld : process 
   -- begin
   --   -- vld_firewall <= '1'; wait;
