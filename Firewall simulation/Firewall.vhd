@@ -167,9 +167,11 @@ component minfifo
                       comince_byte_stream,
                       terminate_match,
                       test_a_wrong_header,
-                      wait_for_bytestream_to_fin
+                      wait_for_bytestream_to_fin,
 
                       --test 2
+                      reset_all
+
                         );
   signal current_state, next_state : State_type;
 
@@ -300,9 +302,17 @@ begin
     begin
         if reset = '1' then
             current_state <= setup_rulesearch;
+            
         elsif rising_edge(clk) then
             current_state <= next_state;
-            bytenumber <= nextbytenum;
+            --bytenumber <= nextbytenum;
+            if bytenumber = data_length_packet then
+              bytenumber <= 0;
+              --nextbytenum <= 0;
+            else
+              bytenumber <= nextbytenum;
+              
+            end if ;
         end if ;
     end process;  
     
@@ -369,11 +379,18 @@ begin
             next_state <= comince_byte_stream;
         end if;
         
+        when terminate_match =>
+            if test2_fin = '1' then
+              next_state <= terminate_match;
+            else
+              next_state <= reset_all;
+            end if ;
 
-        when terminate_match => next_state <= terminate_match;        
-        
+        --test 2
+        when reset_all => next_state <= setup_rulesearch;
         when others =>
           next_state <= setup_rulesearch;
+          test2_fin <= '1';
       end case;
   end process;
 
@@ -400,6 +417,7 @@ begin
       when setup_rulesearch => 
         set_rule <= '1';
 	      cnt <= 0;
+        reset <= '0';
       
       when set_keys_and_read_input_packets =>
        
@@ -476,18 +494,26 @@ begin
       
       when pause_byte_stream =>              
 
-      when terminate_match => test1_fin <= '1';
+      when terminate_match => 
+      test1_fin <= '1';
+      if ok_cnt = "00000011" and ko_cnt = "1010110"  then
+        report "TEST 1 PASSED" severity NOTE;
+      else
+        report "TEST 1 FAILED ok = " & integer'image(to_integer(unsigned(ok_cnt))) & "ko =" & integer'image(to_integer(unsigned(ko_cnt))) severity ERROR;
+        
+       end if ;
 
       when test_a_wrong_header => 
         --header_data <= "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" & "00011111";
 
       when wait_for_bytestream_to_fin => 
       
-
+      when reset_all => reset <= '1';
       when others => report "FAILURE" severity failure;
           
       end case;
-   
+      --report "TEST 1 FAILED" & integer'image(86) severity ERROR;
+        
   end process;
 
   TestInputs : process 
@@ -499,7 +525,7 @@ begin
 
   end process;
 
-  TEST_OUTPUT : process (test1_fin,full)
+  TEST_OUTPUT : process (test1_fin)
   begin
     if full = '1' then
       report "THE FIFO SHOULD NEVER BE FULL" severity ERROR;
@@ -507,11 +533,7 @@ begin
 
 
     if test1_fin = '1' then
-        if ok_cnt = 85 and ko_cnt = 4 then
-          report "TEST 1 PASSED" severity NOTE;
-        else
-          report "TEST 1 FAILED" severity ERROR;
-         end if ;
+        
 
 
     end if ;

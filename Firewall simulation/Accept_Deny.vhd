@@ -134,8 +134,11 @@ begin
             
         end process;
 
-        ok_cnt <= std_logic_vector(to_signed(int_ok, ok_cnt'length));
-        ko_cnt <= std_logic_vector(to_signed(int_ko, ko_cnt'length));
+        --ok_cnt <= std_logic_vector(to_signed(int_ok, ok_cnt'length));
+        --ko_cnt <= std_logic_vector(to_signed(int_ko, ko_cnt'length));
+
+        ok_cnt <= std_logic_vector(to_unsigned(ok_cnt_firewall,ok_cnt'length));
+        ko_cnt <= std_logic_vector(to_unsigned(ko_cnt_firewall,ok_cnt'length));
         
 end architecture;
 
