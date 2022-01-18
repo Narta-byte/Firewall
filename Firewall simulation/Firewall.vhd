@@ -322,7 +322,9 @@ begin
                               rdy_hash,
                               vld_hdr, cnt_calc_fin,
                               rdy_ad_hash,
-                              byte_stream_done)
+                              byte_stream_done,
+                              test1_fin,
+                              test2_fin)
   begin
     next_state <= current_state; -- måske sus
       case current_state is
@@ -390,7 +392,7 @@ begin
         when reset_all => next_state <= setup_rulesearch;
         when others =>
           next_state <= setup_rulesearch;
-          test2_fin <= '1';
+          
       end case;
   end process;
 
@@ -418,6 +420,7 @@ begin
         set_rule <= '1';
 	      cnt <= 0;
         reset <= '0';
+        byte_stream_done <= '0';
       
       when set_keys_and_read_input_packets =>
        
@@ -496,19 +499,27 @@ begin
 
       when terminate_match => 
       test1_fin <= '1';
-      if ok_cnt = "00000011" and ko_cnt = "1010110"  then
+      
+      if ok_cnt = "00000011" and ko_cnt = "1010110" and test1_fin = '0'  then
         report "TEST 1 PASSED" severity NOTE;
-      else
-        report "TEST 1 FAILED ok = " & integer'image(to_integer(unsigned(ok_cnt))) & "ko =" & integer'image(to_integer(unsigned(ko_cnt))) severity ERROR;
+      elsif test1_fin = '0' then
+        report "TEST 1 FAILED ok = " & integer'image(to_integer(unsigned(ok_cnt))) & " ko = " & integer'image(to_integer(unsigned(ko_cnt))) severity ERROR;
         
        end if ;
 
+      if ok_cnt = "00000011" and ko_cnt = "1010110" and test2_fin = '1' and test1_fin = '1'  then
+        report "TEST 2 PASSED" severity NOTE;
+      elsif  test2_fin = '1' and test1_fin = '1' then
+        report "TEST 2 FAILED ok = " & integer'image(to_integer(unsigned(ok_cnt))) & " ko = " & integer'image(to_integer(unsigned(ko_cnt))) severity ERROR;
+      end if ;
       when test_a_wrong_header => 
         --header_data <= "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" & "00011111";
 
       when wait_for_bytestream_to_fin => 
       
-      when reset_all => reset <= '1';
+      when reset_all => reset <= '1'; test2_fin <= '1';
+
+
       when others => report "FAILURE" severity failure;
           
       end case;
@@ -641,3 +652,25 @@ begin
 -- // :;;;iffGCCLffftttt;..        .      .. .,,.........,,,,,:itLttffttfttt1111111i;;
 -- //   .: :tLLfftttt1i, .         ,.    ...  ..,,........... ,i1fii1t1111111t1i11tt;t
 
+-- //            ..,:;i;:::,,,..
+-- //       ,:;ii11111111i11111ii;,                       ..,,::;:,,,...
+-- //    :11t11iii;;;;;;;;;;;;;;iiii:                 ,;1111111111iiiiiii;:.
+-- //  ,tt1i;;;;;;;;;;;;;;;;;iii;::;i;..           .;1t1ii;;;;;;;;;;;;;;;;ii;,
+-- // i1i::::;;:::::::::::;1tffft1i:,:::;         it1i::;;;;:::::;;;;i1t1i:::;;,
+-- // i::::::::::::::::::;1ttttttfft1i;i:        :1;:::::::::::::::i1ffffft1;::i,
+-- // ,:::::,,,:,,,,,,::ittttttttttttt1;,        :::::::::::::::::itttttttttt1i;.
+-- // ,::::,,,,,,,,,,,:;1ttttttttttttt1i.       ,:::::,,,,,,,,,,:;tttttttttttt1:
+-- // ,:::,,,,,,,,,,,,,;tttttttftttttttLf;     .:::::,,,,,,,,,,,:1tttttt111ttt1i.
+-- // ,:,,,,,.,,,,,,,,,,iffttt11G00GffLiL8,   .::::::,,,,,,,,,,,,ittttttLCCLttLGL.
+-- // ,,,,........,,,.,.,;1ttt, G@0Gttf;1L.  .:::::,,...,,,,,,,,,:1ttttG801;tfC8i
+-- // ,,..................,i11;;11iifftf;    .::,,,,.......,,,....,:1t1tti.:tft1,
+-- // ,,,,................,:i111ii1ffffLt:.  .,,,.,,................:11i;;1tffft:
+-- // .,;;................:ii1ttffffttttti:  .,...,;;,.............,;i1ttffffffft:
+-- //  .,................,ii1tttttttt1:...,.  .,...::,............,;11ttttttt1;:,,
+-- //   .................:;;:;;;iiiii:,..      .,.................,i;;iiii111;. .
+-- //    ..  ......  ....,:;iiiiiiiii;;.        .,.. .........  ..,:;;;;;;;;;:::.
+-- //     ...          ...,,,,,,,:::;:.          .:;,        ......,::;;:;;;i;:.
+-- //      .1ft1i;,...     .........,.           .:1tii;:,,...      .......,,:
+-- //       iftfttt1tttt11i;::,...  ..             1tfftttffftt1iii;:,,..   ..
+-- //     :tLLft111ii;;iii1111111i;;;:           .tCLLf111iiiiii111ttt111i;::
+-- // ::;L0GfLLCCCCCCLt1i;;;;;ittft111;:,,..,::;1G0LfLCCCCLLLft1ii;;;;iii1111;::::::::

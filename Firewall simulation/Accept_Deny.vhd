@@ -57,6 +57,8 @@ begin
         begin
             if reset = '1' then
                 current_state <= wait_hash; 
+                int_ok <= 0;
+                int_ko <= 0;
             elsif rising_edge(clk) then
                 current_state <= next_state; 
                 int_ok <= int_ok_next;
@@ -96,7 +98,7 @@ begin
         end process;
 
 
-        OUTPUT_LOGIC : process (current_state, vld_ad_hash, acc_deny_hash, vld_fifo,first_time_cnt)
+        OUTPUT_LOGIC : process (current_state, reset, vld_ad_hash, acc_deny_hash, vld_fifo,first_time_cnt)
         begin
             data_firewall <= (others=>'0');
             int_ok_next <= int_ok;
@@ -104,6 +106,10 @@ begin
 
                 case(current_state) is 
                     when wait_hash =>
+                        if reset = '1' then
+                            ok_cnt_firewall <= 0;
+                            ko_cnt_firewall <= 0;
+                        end if ;
                         rdy_ad_hash <= '1';
                         first_time_cnt <= '0';
 
