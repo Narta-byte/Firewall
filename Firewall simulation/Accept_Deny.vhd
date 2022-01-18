@@ -43,9 +43,11 @@ architecture arch_Accept_Deny of Accept_Deny is
     signal int_ok_next : integer := 0; 
     signal int_ko_next : integer := 0;
 
+    signal ok_cnt_firewall, ko_cnt_firewall : integer := 0;
     -- Other signals 
     signal end_of_packet : std_logic := '0';
 
+    signal first_time_cnt : std_logic:='0';
 
 begin
 
@@ -94,26 +96,37 @@ begin
         end process;
 
 
-        OUTPUT_LOGIC : process (current_state, vld_ad_hash, acc_deny_hash, vld_fifo)
+        OUTPUT_LOGIC : process (current_state, vld_ad_hash, acc_deny_hash, vld_fifo,first_time_cnt)
         begin
             data_firewall <= (others=>'0');
             int_ok_next <= int_ok;
             int_ko_next <= int_ko;
 
                 case(current_state) is 
-
                     when wait_hash =>
                         rdy_ad_hash <= '1';
+                        first_time_cnt <= '0';
 
                     when accept_and_forward => 
                             data_firewall <= packet_forward_FIFO;
                             rdy_ad_FIFO <= '1'; 
-                            int_ok_next <= int_ok + 1;
-
+                            
+                            rdy_ad_hash <= '0';
+                            if first_time_cnt = '0' then
+                                int_ok_next <= int_ok + 1;
+                                first_time_cnt <= '1';
+                                ok_cnt_firewall <= ok_cnt_firewall +1;
+                            end if ;
                     when deny_and_delete => 
-                        int_ko_next <= int_ko + 1;
+                        
                         rdy_ad_FIFO <= '1'; 
-                    
+                        rdy_ad_hash <= '0';
+                        
+                        if first_time_cnt = '0' then
+                            ko_cnt_firewall <= ko_cnt_firewall +1;
+                            int_ko_next <= int_ko + 1;
+                            first_time_cnt <= '1';
+                        end if ;
                     when others => report "ERROR IN OUTPUT LOGIC" severity failure; 
                     
                 end case;

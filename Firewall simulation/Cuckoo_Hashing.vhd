@@ -25,7 +25,7 @@ entity Cuckoo_Hashing is
     vld_firewall_hash : in std_logic;
     rdy_firewall_hash : out std_logic;
 
-    acc_deny_hash : out std_logic;
+    acc_deny_hash : out std_logic:= '0';
     vld_ad_hash : out std_logic;
     rdy_ad_hash : in std_logic
   ) ;
@@ -152,7 +152,7 @@ architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
     end process;
 
     NEXT_STATE_LOGIC : process (current_state, insert_flag, set_rule, vld_firewall_hash, exits_cuckoo, MAX, flip,flush_flag, 
-                                previous_search, exits_matching, vld_hdr)
+                                previous_search, exits_matching, vld_hdr,rdy_ad_hash)
     begin
         next_state <= current_state;
                 case(current_state) is
@@ -330,29 +330,29 @@ architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
             
     when rdy_hash_matching =>
         rdy_hash <= '1';
-        matching_key <= header_data;
+        --matching_key <= header_data;
         previous_search <= '0';
         vld_ad_hash <= '0';
     when search_hash1 => 
         rdy_hash <= '0';
         RW <= '0';
         --address <=std_logic_vector(to_unsigned(to_integer(unsigned(matching_key)) mod 227,96)(8 downto 0));
-        address <= '0' & src_hash(matching_key,g1);
+        address <= '0' & src_hash(header_data,g1);
     when search_hash2 => 
         RW <= '0';
         --address <= std_logic_vector(to_unsigned((to_integer(unsigned(matching_key))/227 mod 227)+256,96)(8 downto 0)); 
-        address <= src_hash(matching_key,g2)+"100000000";
+        address <= src_hash(header_data,g2)+"100000000";
         previous_search <= '1';
 
     when matching => 
-    if data_out(95 downto 0) = matching_key then
+    if data_out(95 downto 0) = header_data then
         exits_matching <= '1';
-        acc_deny_hash <= '1';
+        acc_deny_hash <= '0';
         DEBUG_KO_CNT <= DEBUG_KO_CNT +1; 
     else
         if previous_search = '1' then
             DEBUG_OK_CNT <= DEBUG_OK_CNT+1;
-            acc_deny_hash <= '0';
+            acc_deny_hash <= '1';
         end if ;
         exits_matching <= '0';
     end if;

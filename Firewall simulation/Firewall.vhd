@@ -356,7 +356,7 @@ begin
         when comince_byte_stream => 
           if byte_stream_done = '1' then
             next_state <= terminate_match;
-          elsif rdy_FIFO = '0'  or vld_firewall = '0' or rdy_hash ='0' then
+          elsif rdy_FIFO = '0'  or vld_firewall = '0' then
             next_state <= pause_byte_stream;          
           elsif rdy_FIFO = '1' and rdy_hash = '1' and vld_firewall = '1' then
             next_state <= comince_byte_stream;
@@ -365,7 +365,7 @@ begin
         when pause_byte_stream => 
         if rdy_FIFO = '0' or vld_firewall = '0' then
             next_state <= terminate_match;
-          elsif rdy_FIFO = '1' and rdy_hash = '1' and vld_firewall = '1' then
+          elsif rdy_FIFO = '1'  and vld_firewall = '1' then
             next_state <= comince_byte_stream;
         end if;
         
@@ -499,19 +499,19 @@ begin
 
   end process;
 
-  TEST_OUTPUT : process (test1_fin)
+  TEST_OUTPUT : process (test1_fin,full)
   begin
-    --if rising_edge(clk) then
-      if test1_fin = '1' then
+    if full = '1' then
+      report "THE FIFO SHOULD NEVER BE FULL" severity ERROR;
+    end if ;
+
+
+    if test1_fin = '1' then
         if ok_cnt = 85 and ko_cnt = 4 then
           report "TEST 1 PASSED" severity NOTE;
         else
           report "TEST 1 FAILED" severity ERROR;
-        --end if ;
-        
-
-
-      end if ;
+         end if ;
 
 
     end if ;
