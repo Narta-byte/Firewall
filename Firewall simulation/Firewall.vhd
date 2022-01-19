@@ -202,7 +202,8 @@ component minfifo
 
   --signals in hashmatching
   signal byte_stream_done : std_logic := '0'; 
-  signal cnt_calc_fin : integer := 0;
+  signal cnt_calc_fin : integer range 0 to 2:= 0;
+  signal cnt_calc_fin_next : integer range 0 to 2:= 0; 
 
   --signals in byte stream
   signal doneloop : std_logic;
@@ -313,21 +314,23 @@ begin
     begin
         if reset = '1' then
             current_state <= setup_rulesearch;
-            
+            cnt_calc_fin <= 0;
+            bytenumber <= 0;
         elsif rising_edge(clk) then
             current_state <= next_state;
-            --bytenumber <= nextbytenum;
+
+            cnt_calc_fin <= cnt_calc_fin_next; 
             if bytenumber = data_length_packet then
               bytenumber <= 0;
               --nextbytenum <= 0;
             else
               bytenumber <= nextbytenum;
-              
             end if ;
         end if ;
     end process;  
     
-    NEXT_STATE_LOGIC : process (current_state, done_looping, 
+    NEXT_STATE_LOGIC : process (current_state, 
+                              done_looping, 
                               rdy_firewall_hash, vld_firewall_hash,
                               data_end,calc_is_done,
                               rdy_hash,
@@ -339,11 +342,12 @@ begin
                               test3_fin,
                               deletion_done)
   begin
-    next_state <= current_state; -- måske sus
+    next_state <= current_state; 
+    cnt_calc_fin_next <= cnt_calc_fin;
       case current_state is
         when setup_rulesearch =>
           next_state <= set_keys_and_read_input_packets;
-          cnt_calc_fin <= 0;
+          cnt_calc_fin_next <= 0;
         when set_keys_and_read_input_packets => if done_looping = '1' then
           next_state <= wait_for_ready_insert;
         end if ;
@@ -360,7 +364,9 @@ begin
         
         when terminate_insertion => 
           if not (cnt_calc_fin = 2) and rdy_firewall_hash = '1' then
-            cnt_calc_fin <= cnt_calc_fin +1;
+            --cnt_calc_fin <= cnt_calc_fin +1;
+            cnt_calc_fin_next <= cnt_calc_fin +1;
+            
           elsif (cnt_calc_fin = 2)  then
             next_state <= goto_cmd_state;
           end if;
@@ -559,15 +565,15 @@ begin
         
        end if ;
 
-      if ok_cnt = "00000011" and ko_cnt = "1010110" and test2_fin = '0' and test3_fin = '0' and test1_fin = '1'  then
+      if ok_cnt = "00000011" and ko_cnt = "1010110" and test2_fin = '0' and test1_fin = '1'  then
         report "TEST 2 PASSED" severity NOTE;
-      elsif  test2_fin = '1' and test1_fin = '1' then
+      elsif  test2_fin = '0' and test1_fin = '1' then
         report "TEST 2 FAILED ok = " & integer'image(to_integer(unsigned(ok_cnt))) & " ko = " & integer'image(to_integer(unsigned(ko_cnt))) severity ERROR;
       end if ;
 
       if ok_cnt = "00001011" and ko_cnt = "10100111" and test3_fin = '0' and test2_fin = '1' and test1_fin = '1'  then
         report "TEST 3 PASSED" severity NOTE;
-      elsif  test2_fin = '1' and test1_fin = '1' then
+      elsif  test2_fin = '1' and test1_fin = '1' and test3_fin = '0' then
         report "TEST 3 FAILED ok = " & integer'image(to_integer(unsigned(ok_cnt))) & " ko = " & integer'image(to_integer(unsigned(ko_cnt))) severity ERROR;
       end if ;
 
