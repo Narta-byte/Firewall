@@ -98,7 +98,7 @@ component minfifo
   signal rdy_FIFO : std_logic := '0';
   signal rdy_hash : std_logic := '0';
   signal rdy_collecthdr : std_logic:='0';
-  signal header_data : std_logic_vector (95 downto 0) := x"000000000000000000000000";
+  signal header_data : std_logic_vector (95 downto 0);
   signal packet_forward : std_logic_vector (9 downto 0) := "0000000000";
   signal vld_hdr : std_logic := '0';
   signal vld_hdr_FIFO : std_logic;
@@ -170,8 +170,13 @@ component minfifo
                       wait_for_bytestream_to_fin,
 
                       --test 2
-                      reset_all
+                      reset_all,
 
+                      -- test 3
+                      setup_delete_key,
+                      delete_key,
+                      wait_delete_key,
+                      terminate_delete
                         );
   signal current_state, next_state : State_type;
 
@@ -181,8 +186,9 @@ component minfifo
   --constant data_length_keys : integer := 160;
   --constant data_length_packet : integer := 38689;
   constant data_length_keys : integer := 85;
-  constant data_length_packet : integer := 38688;
-  
+  constant data_length_packet : integer := 5598;
+  constant data_length_delete : integer := 4;
+
   --output logic signals 
   signal cnt : integer;
   type key_array is array (0 to data_length_keys) of std_logic_vector(95 downto 0);
@@ -190,7 +196,10 @@ component minfifo
 
   type packet_array is array (0 to data_length_packet) of std_logic_vector(9 downto 0);
   signal packet_array_sig : packet_array;
-  
+    
+  type delete_array is array (0 to data_length_delete) of std_logic_vector(95 downto 0);
+  signal delete_array_sig : delete_array;
+
   --signals in hashmatching
   signal byte_stream_done : std_logic := '0'; 
   signal cnt_calc_fin : integer := 0;
@@ -209,6 +218,8 @@ component minfifo
   signal bytenumber : integer := 0;
   signal nextbytenum : integer := 0;
   
+  --test 3
+  signal deletion_done : std_logic := '0';
   
 begin
   
@@ -324,15 +335,15 @@ begin
                               rdy_ad_hash,
                               byte_stream_done,
                               test1_fin,
-                              test2_fin)
+                              test2_fin,  
+                              test3_fin,
+                              deletion_done)
   begin
     next_state <= current_state; -- måske sus
       case current_state is
         when setup_rulesearch =>
           next_state <= set_keys_and_read_input_packets;
-
-       
-
+          cnt_calc_fin <= 0;
         when set_keys_and_read_input_packets => if done_looping = '1' then
           next_state <= wait_for_ready_insert;
         end if ;
@@ -357,9 +368,19 @@ begin
          when wait_for_last_calc_to_finish => 
           if rdy_firewall_hash = '1' then
             next_state <= terminate_insertion;
+            --next_state <= setup_delete_key;
           end if;
 
-        when goto_cmd_state => next_state <= start_byte_stream;
+        when goto_cmd_state => 
+        if test2_fin = '1' and deletion_done = '1' then
+          next_state <= start_byte_stream;
+        
+        elsif test2_fin = '1' then
+          next_state <= setup_delete_key;
+
+        else
+          next_state <= start_byte_stream;  
+        end if ;
 
         when start_byte_stream => --next_state <= pause_byte_stream;
           next_state <= comince_byte_stream;
@@ -382,16 +403,32 @@ begin
         end if;
         
         when terminate_match =>
-            if test2_fin = '1' then
+            if test3_fin = '1' then
               next_state <= terminate_match;
+            elsif test1_fin = '1' and test2_fin = '1' and test3_fin = '0' then
+              next_state <= setup_rulesearch;
             else
               next_state <= reset_all;
             end if ;
 
         --test 2
         when reset_all => next_state <= setup_rulesearch;
-        when others =>
-          next_state <= setup_rulesearch;
+
+        --test 3
+        when setup_delete_key => next_state <= delete_key;
+
+        when delete_key => next_state <= wait_delete_key;
+
+        when wait_delete_key => 
+        if data_end = '1' then
+          next_state <= terminate_delete;  
+        elsif  rdy_firewall_hash = '1' and vld_firewall_hash = '1'then
+          next_state <= delete_key;
+        end if ;
+
+        when terminate_delete => next_state <= goto_cmd_state;
+
+        when others => next_state <= setup_rulesearch;
           
       end case;
   end process;
@@ -409,7 +446,10 @@ begin
   variable current_bit_read_EoP : std_logic_vector (0 downto 0);
   variable start_of_data_Reader : std_logic;
 
-  variable var_cnt : integer:=0;
+  file input_delete_keys : TEXT open READ_MODE is "delete_keys.txt";
+  variable current_read_line_delete_keys : line;
+  variable delete_reader : std_logic_vector(95 downto 0);
+  
   
   file output : text open WRITE_MODE is "DEBUG_OUTPUT.txt";
   variable write_line : line;
@@ -421,15 +461,16 @@ begin
 	      cnt <= 0;
         reset <= '0';
         byte_stream_done <= '0';
+        data_end <= '0';
+        cnt <= 0;
+        --cnt_calc_fin <= 0; --fix senere
       
       when set_keys_and_read_input_packets =>
        
           READ_ARRAY : for i in 0 to data_length_keys loop
             if not ENDFILE(input) then
-              
               readline(input, current_read_line_keys);
               READ(current_read_line_keys, std_logic_vector_reader);
-              
               key_array_sig(i) <= std_logic_vector_reader;
               end if ; 
            
@@ -439,18 +480,24 @@ begin
             if not ENDFILE(input_packet) then
               readline(input_packet, current_read_line);
               hread(current_read_line, current_read_field);
-              
               read(current_read_line, current_bit_read_SoP);
-            
               read(current_read_line, current_bit_read_EoP);
-             
               packet_array_sig(i) <= current_read_field & current_bit_read_SoP & current_bit_read_EoP;
               packet_data <= hex12;
                     
             else
-              doneloop <= '1';
+              doneloop <= '1'; --TODO SLET
             end if;
+
+            
           end loop ; -- READ_INPUT_PACKET
+          READ_DELETE_KEYS : for i in 0 to data_length_delete loop
+            if not ENDFILE(input_delete_keys) then
+              readline(input_delete_keys, current_read_line_delete_keys);
+              READ(current_read_line_delete_keys, delete_reader);
+              delete_array_sig(i) <= delete_reader;
+            end if;
+          end loop ; -- READ_DELETE_KEYS
 
 
 
@@ -464,9 +511,7 @@ begin
           key_in <= key_array_sig(cnt);
           cnt <= cnt+1;
 
-          if cnt = data_length_keys 
-      
-      then
+          if cnt = data_length_keys then
             data_end <= '1';
             
           end if ;
@@ -499,6 +544,13 @@ begin
 
       when terminate_match => 
       test1_fin <= '1';
+      if test1_fin = '1' and test2_fin = '0' then
+        test2_fin <= '1';
+      end if;
+
+      if test2_fin = '1' and test3_fin = '0'then
+        test3_fin <= '1';
+      end if;
       
       if ok_cnt = "00000011" and ko_cnt = "1010110" and test1_fin = '0'  then
         report "TEST 1 PASSED" severity NOTE;
@@ -507,18 +559,46 @@ begin
         
        end if ;
 
-      if ok_cnt = "00000011" and ko_cnt = "1010110" and test2_fin = '1' and test1_fin = '1'  then
+      if ok_cnt = "00000011" and ko_cnt = "1010110" and test2_fin = '0' and test3_fin = '0' and test1_fin = '1'  then
         report "TEST 2 PASSED" severity NOTE;
       elsif  test2_fin = '1' and test1_fin = '1' then
         report "TEST 2 FAILED ok = " & integer'image(to_integer(unsigned(ok_cnt))) & " ko = " & integer'image(to_integer(unsigned(ko_cnt))) severity ERROR;
       end if ;
+
+      if ok_cnt = "00001011" and ko_cnt = "10100111" and test3_fin = '0' and test2_fin = '1' and test1_fin = '1'  then
+        report "TEST 3 PASSED" severity NOTE;
+      elsif  test2_fin = '1' and test1_fin = '1' then
+        report "TEST 3 FAILED ok = " & integer'image(to_integer(unsigned(ok_cnt))) & " ko = " & integer'image(to_integer(unsigned(ko_cnt))) severity ERROR;
+      end if ;
+
+
       when test_a_wrong_header => 
-        --header_data <= "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" & "00011111";
 
       when wait_for_bytestream_to_fin => 
       
-      when reset_all => reset <= '1'; test2_fin <= '1';
+      when reset_all =>
+      reset <= '1'; 
+      
+      when setup_delete_key => 
+        cmd_in <= "10";
+        cnt <= 0;
+        vld_firewall <= '1';
+        data_end <= '0';
+        vld_firewall_hash <= '1';
 
+      when delete_key => 
+        key_in <= delete_array_sig(cnt);
+        cnt <= cnt +1;
+        if cnt = data_length_delete then
+          data_end <= '1';
+          
+        end if ;
+
+      when wait_delete_key =>
+        
+      when terminate_delete => 
+        vld_firewall_hash <= '0';
+        deletion_done <= '1';
 
       when others => report "FAILURE" severity failure;
           

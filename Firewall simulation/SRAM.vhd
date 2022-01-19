@@ -20,7 +20,7 @@ end SRAM ;
 
 architecture SRAM_arch of SRAM is
   
-  type WE_type is array (0 to 511) of std_logic_vector(96 downto 0); --occupied and key key 
+  type WE_type is array (0 to 511) of std_logic_vector(96 downto 0); --occupied and key  
   signal WE : WE_type := (others => (others => '0')); 
 
 begin
@@ -35,7 +35,7 @@ begin
     elsif rising_edge(clk) then
       
       if RW = '1' then
-        WE(to_integer(unsigned(address))) <= '1' & data_in; --fix til at bruge occupied
+        WE(to_integer(unsigned(address))) <= occupied & data_in; 
       else
       data_out <= WE(to_integer(unsigned(address)));
       end if ;

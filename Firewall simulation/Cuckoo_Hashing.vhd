@@ -1,3 +1,5 @@
+
+
 library IEEE;
 library std;
 use IEEE.std_logic_1164.all;
@@ -152,13 +154,12 @@ architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
     end process;
 
     NEXT_STATE_LOGIC : process (current_state, insert_flag, set_rule, vld_firewall_hash, exits_cuckoo, MAX, flip,flush_flag, 
-                                previous_search, exits_matching, vld_hdr,rdy_ad_hash)
+                                previous_search, exits_matching, vld_hdr,rdy_ad_hash,delete_flag)
     begin
         next_state <= current_state;
                 case(current_state) is
 
                     when command_state => 
-                        deletion_key <= (others => '0');
                         if flush_flag = '1' then
                             next_state <= flush_memory;
                         elsif delete_flag = '1' then
@@ -226,7 +227,7 @@ architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
                         end if ;
                        
                     when rdy_delete =>
-                        if insert_flag ='0' then
+                        if delete_flag ='0' then
                             next_state <= command_state;
                          elsif vld_firewall_hash ='1' then
                             next_state <= find_hashfun1;
@@ -266,8 +267,9 @@ architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
        when "01" => --insert
            insert_flag <= '1';
        when "10" => -- delete
-           --TODO
+           delete_flag <= '1';
        when "11" =>  --hash match
+            delete_flag <= '0';
             insert_flag <= '0';
             flush_flag <= '0';
        when others => --stay in command_state
@@ -276,16 +278,10 @@ architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
    when flush_memory => flush_sram <= '1'; flush_flag <= '0';
    
    when insert_key =>
-        if hashfun = '0' then
             RW <= '1';
             data_in <= insertion_key;
             flip <= '1';
-        elsif hashfun = '1' then
-            RW <= '1';
-            data_in <= insertion_key;
-            flip <= '1'; 
             
-            end if;
     when rdy_key => 
             if not (cmd_in = "01")  then
                 insert_flag <= '0';
@@ -294,6 +290,7 @@ architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
         insertion_key<=key_in;
         MAX <= 0;
         eq_key <= '0';
+        occupied <= '1';
             
     when lookup_hash1 =>
         rdy_firewall_hash <= '0';
@@ -372,6 +369,7 @@ architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
                         occupied <= '0';
 
                     when find_hashfun1 =>
+                        rdy_firewall_hash <= '0';
                         rdy_hash <= '0';
                         RW <= '0';
                         address <= '0' & src_hash(deletion_key,g1);
@@ -402,5 +400,3 @@ architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
 
 
 end architecture ; -- Cuckoo_Hashing
-
-

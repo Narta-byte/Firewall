@@ -402,7 +402,7 @@ begin
 
       when packet_next =>
 
-        if rdy_FIFO = '1' and rdy_hash = '1' and bytenum_next >= 12 and bytenum_next <= 25 and vld_firewall = '1' then
+        if rdy_FIFO = '1' and bytenum_next >= 12 and bytenum_next <= 25 and vld_firewall = '1' then
           next_state <= collect_header;
         elsif bytenum_next >= 26 and SoP = '0' and header_sent = '0' then
           next_state <= forward_header;
@@ -418,19 +418,19 @@ begin
 
         if rdy_FIFO = '0' or rdy_hash = '0' or vld_firewall = '0' then
           next_state <= stop_wait;
-        elsif rdy_FIFO = '1' and rdy_hash = '1' and bytenum_next >= 11 and bytenum_next <= 24 and vld_firewall = '1' then
+        elsif rdy_FIFO = '1' and bytenum_next >= 11 and bytenum_next <= 24 and vld_firewall = '1' then
           next_state <= collect_header;
         elsif rdy_FIFO = '1' and rdy_hash = '1' and bytenum_next >= 24 and vld_firewall = '1' and header_sent = '0' then 
           next_state <= forward_header;
 
-        elsif rdy_FIFO = '1' and rdy_hash = '1' and vld_firewall = '1' then
+        elsif rdy_FIFO = '1' and vld_firewall = '1' then
           next_state <= packet_next;
         end if;
 
       when collect_header =>
         if rdy_FIFO = '0' or rdy_hash = '0' or vld_firewall = '0' then
           next_state <= stop_wait;
-        elsif rdy_FIFO = '1' and rdy_hash = '1' and vld_firewall = '1' and header_sent = '0' and bytenum_next <= 25 then
+        elsif rdy_FIFO = '1' and vld_firewall = '1' and header_sent = '0' and bytenum_next <= 25 then
           next_state <= collect_header;
         elsif rdy_FIFO = '1' and rdy_hash = '1' and vld_firewall = '1' then
           next_state <= forward_header;
