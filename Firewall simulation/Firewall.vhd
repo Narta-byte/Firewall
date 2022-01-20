@@ -10,6 +10,9 @@ use IEEE.std_logic_textio.all;
 --USE altera_mf.all;
 
 entity firewall is
+	port(ADC_CLK_10 : in std_logic;
+       LEDR : out std_logic_vector(9 downto 0)
+       );
 end entity;
 
 architecture firewall_arch of firewall is
@@ -149,6 +152,15 @@ component minfifo
   signal test1_fin,test2_fin,test3_fin : std_logic := '0';
   
 
+  --next signals
+  signal set_rule_next : std_logic;
+  signal cnt_next : integer;
+  signal data_end_next : std_logic;
+  signal cmd_in_next : std_logic_vector(1 downto 0);
+  signal vld_firewall_hash_next : std_logic;
+  signal key_in_next : std_logic_vector(95 downto 0);
+  signal test1_fin_next, test2_fin_next, test3_fin_next : std_logic;
+  signal deletion_done_next : std_logic;
 
     -- cuckoo hash tb copy paste
   type State_type is (  
@@ -206,7 +218,6 @@ component minfifo
   signal cnt_calc_fin_next : integer range 0 to 2:= 0; 
 
   --signals in byte stream
-  signal doneloop : std_logic;
   signal bytenm : integer := 0;
   signal packet_start : std_logic := '0';
   signal hex12 : std_logic_vector (7 downto 0);
@@ -223,7 +234,7 @@ component minfifo
   signal deletion_done : std_logic := '0';
   
 begin
-  
+  --clk <= ADC_CLK_10;
   CLOCK : process 
   begin
       clk <= '1';
@@ -260,12 +271,12 @@ begin
       clk => clk, --yes
       reset => reset, --yes
       set_rule => set_rule, --yes
-      cmd_in => cmd_in, --yes
-      key_in => key_in, --yes
+      cmd_in => cmd_in_next, --yes
+      key_in => key_in_next, --yes
       header_data => header_data, --yes
       vld_hdr => vld_hdr, --yes
       rdy_hash => rdy_hash, --yes
-      vld_firewall_hash => vld_firewall_hash, --yes
+      vld_firewall_hash => vld_firewall_hash_next, --yes
       rdy_firewall_hash => rdy_firewall_hash, --yes
       acc_deny_hash => acc_deny_hash, --kan ikke implementeres pt
       vld_ad_hash => vld_ad_hash, 
@@ -314,12 +325,33 @@ begin
     begin
         if reset = '1' then
             current_state <= setup_rulesearch;
-            cnt_calc_fin <= 0;
-            bytenumber <= 0;
+            -- cnt_calc_fin <= 0; 
+            -- set_rule <= '0';
+            -- cnt <= 0;
+            -- data_end <= '0';
+            -- cmd_in <= "11";
+            -- vld_firewall_hash <= '0';
+            -- key_in <= (others => '0');
+            -- test1_fin <= '0';
+            -- test2_fin <= '0';
+            -- test3_fin <= '0';
+            -- deletion_done <= '0';
+            -- bytenumber <= 0;
+
         elsif rising_edge(clk) then
             current_state <= next_state;
-
             cnt_calc_fin <= cnt_calc_fin_next; 
+            set_rule <= set_rule_next;
+            cnt <= cnt_next;
+            data_end <= data_end_next;
+            cmd_in <= cmd_in_next;
+            vld_firewall_hash <= vld_firewall_hash_next;
+            key_in <= key_in_next;
+            test1_fin <= test1_fin_next;
+            test2_fin <= test2_fin_next;
+            test3_fin <= test3_fin_next;
+            deletion_done <= deletion_done_next;
+
             if bytenumber = data_length_packet then
               bytenumber <= 0;
               --nextbytenum <= 0;
@@ -331,16 +363,22 @@ begin
     
     NEXT_STATE_LOGIC : process (current_state, 
                               done_looping, 
-                              rdy_firewall_hash, vld_firewall_hash,
-                              data_end,calc_is_done,
+                              rdy_firewall_hash,
+                              vld_firewall_hash,
+                              data_end,
+                              calc_is_done,
                               rdy_hash,
                               vld_hdr, cnt_calc_fin,
                               rdy_ad_hash,
                               byte_stream_done,
-                              test1_fin,
-                              test2_fin,  
-                              test3_fin,
-                              deletion_done)
+                                
+                              
+                              deletion_done,
+                              rdy_fifo,
+                              vld_firewall,
+                              test1_fin_next,
+                              test2_fin_next,
+                              test3_fin_next)
   begin
     next_state <= current_state; 
     cnt_calc_fin_next <= cnt_calc_fin;
@@ -378,10 +416,10 @@ begin
           end if;
 
         when goto_cmd_state => 
-        if test2_fin = '1' and deletion_done = '1' then
+        if test2_fin_next = '1' and deletion_done = '1' then
           next_state <= start_byte_stream;
         
-        elsif test2_fin = '1' then
+        elsif test2_fin_next = '1' then
           next_state <= setup_delete_key;
 
         else
@@ -409,9 +447,9 @@ begin
         end if;
         
         when terminate_match =>
-            if test3_fin = '1' then
+            if test3_fin_next = '1' then
               next_state <= terminate_match;
-            elsif test1_fin = '1' and test2_fin = '1' and test3_fin = '0' then
+            elsif test1_fin_next = '1' and test2_fin_next = '1' and test3_fin_next = '0' then
               next_state <= setup_rulesearch;
             else
               next_state <= reset_all;
@@ -439,7 +477,25 @@ begin
       end case;
   end process;
 
-  OUTPUT_LOGIC : process (current_state, bytenumber)
+  OUTPUT_LOGIC : process (current_state,
+                          bytenumber,
+                          set_rule,
+                          cnt,
+                          data_end,
+                          cmd_in,
+                          vld_firewall_hash,
+                          key_in,
+                          test1_fin,
+                          test2_fin,
+                          test3_fin,
+                          deletion_done,
+                          key_array_sig,
+                          packet_array_sig,
+                          delete_array_sig,
+                          nextbytenum,
+                          ok_cnt,
+                          ko_cnt)
+
   file input : TEXT open READ_MODE is "keys_to_be_programmed 2.txt";
   variable current_read_line_keys : line;
   variable std_logic_vector_reader : std_logic_vector(95 downto 0);
@@ -460,15 +516,32 @@ begin
   file output : text open WRITE_MODE is "DEBUG_OUTPUT.txt";
   variable write_line : line;
   begin
+    --default
     nextbytenum <= bytenumber;
+    set_rule_next <= set_rule;
+    cnt_next <= cnt;
+    reset <= '0';
+    byte_stream_done <= '0';
+    data_end_next <= data_end;
+    done_looping <= '0';
+    cmd_in_next <= cmd_in;
+    vld_firewall_hash_next <= vld_firewall_hash; 
+    key_in_next <= key_in;
+    vld_firewall <= '1'; --this signal could become a problem as it could means the firewall is is always valid
+    packet_in <= (others => '0');
+    test1_fin_next <= test1_fin; 
+    test2_fin_next <= test2_fin;
+    test3_fin_next <= test3_fin;
+    deletion_done_next <= deletion_done;
+    
       case current_state is
       when setup_rulesearch => 
-        set_rule <= '1';
-	      cnt <= 0;
+        set_rule_next <= '1';
+        cnt_next <= 0;
         reset <= '0';
         byte_stream_done <= '0';
-        data_end <= '0';
-        cnt <= 0;
+        data_end_next <= '0';
+        cnt_next <= 0;
         --cnt_calc_fin <= 0; --fix senere
       
       when set_keys_and_read_input_packets =>
@@ -491,8 +564,7 @@ begin
               packet_array_sig(i) <= current_read_field & current_bit_read_SoP & current_bit_read_EoP;
               packet_data <= hex12;
                     
-            else
-              doneloop <= '1'; --TODO SLET
+           
             end if;
 
             
@@ -508,38 +580,38 @@ begin
 
 
         done_looping <= '1';
-        cmd_in <= "01";
-        vld_firewall_hash <= '1';
+        cmd_in_next <= "01";
+        vld_firewall_hash_next <= '1';
 
       when wait_for_ready_insert => 
             
       when send_key =>
-          key_in <= key_array_sig(cnt);
-          cnt <= cnt+1;
+          key_in_next <= key_array_sig(cnt);
+          cnt_next <= cnt+1;
 
           if cnt = data_length_keys then
-            data_end <= '1';
+            data_end_next <= '1';
             
           end if ;
          
       when terminate_insertion => 
-              vld_firewall_hash <= '0';
-              cmd_in <= "11";
+              vld_firewall_hash_next <= '0';
+              cmd_in_next <= "11";
 
-      when wait_for_last_calc_to_finish => --vld_firewall_hash <= '0';
-      
+      when wait_for_last_calc_to_finish => 
+
       when goto_cmd_state => 
 
       when start_byte_stream => 
-          cmd_in <= "11";
-          cnt <= 0;
+          cmd_in_next <= "11";
+          cnt_next <= 0;
           --vld_hdr <= '1';
           --rdy_ad_hash <= '1'; --this simulates that the accept deny block is always ready
           --header_data <= "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" & key_array_sig(cnt);
           vld_firewall <= '1';
 
       when comince_byte_stream => --packet_input 
-      set_rule <= '0';
+      set_rule_next <= '0';
       nextbytenum <= bytenumber +1;
       packet_in <= packet_array_sig(nextbytenum);
         if bytenumber = data_length_packet-1 then
@@ -549,17 +621,18 @@ begin
       when pause_byte_stream =>              
 
       when terminate_match => 
-      test1_fin <= '1';
+      test1_fin_next <= '1';
       if test1_fin = '1' and test2_fin = '0' then
-        test2_fin <= '1';
+        test2_fin_next <= '1';
       end if;
 
       if test2_fin = '1' and test3_fin = '0'then
-        test3_fin <= '1';
+        test3_fin_next <= '1';
       end if;
       
       if ok_cnt = "00000011" and ko_cnt = "1010110" and test1_fin = '0'  then
         report "TEST 1 PASSED" severity NOTE;
+        LEDR(0) <= '1';
       elsif test1_fin = '0' then
         report "TEST 1 FAILED ok = " & integer'image(to_integer(unsigned(ok_cnt))) & " ko = " & integer'image(to_integer(unsigned(ko_cnt))) severity ERROR;
         
@@ -567,12 +640,14 @@ begin
 
       if ok_cnt = "00000011" and ko_cnt = "1010110" and test2_fin = '0' and test1_fin = '1'  then
         report "TEST 2 PASSED" severity NOTE;
+        LEDR(1) <= '1';
       elsif  test2_fin = '0' and test1_fin = '1' then
         report "TEST 2 FAILED ok = " & integer'image(to_integer(unsigned(ok_cnt))) & " ko = " & integer'image(to_integer(unsigned(ko_cnt))) severity ERROR;
       end if ;
 
       if ok_cnt = "00001011" and ko_cnt = "10100111" and test3_fin = '0' and test2_fin = '1' and test1_fin = '1'  then
         report "TEST 3 PASSED" severity NOTE;
+        LEDR(2) <= '1';
       elsif  test2_fin = '1' and test1_fin = '1' and test3_fin = '0' then
         report "TEST 3 FAILED ok = " & integer'image(to_integer(unsigned(ok_cnt))) & " ko = " & integer'image(to_integer(unsigned(ko_cnt))) severity ERROR;
       end if ;
@@ -586,25 +661,25 @@ begin
       reset <= '1'; 
       
       when setup_delete_key => 
-        cmd_in <= "10";
-        cnt <= 0;
+        cmd_in_next <= "10";
+        cnt_next <= 0;
         vld_firewall <= '1';
-        data_end <= '0';
-        vld_firewall_hash <= '1';
+        data_end_next <= '0';
+        vld_firewall_hash_next <= '1';
 
       when delete_key => 
-        key_in <= delete_array_sig(cnt);
-        cnt <= cnt +1;
+        key_in_next <= delete_array_sig(cnt);
+        cnt_next <= cnt +1;
         if cnt = data_length_delete then
-          data_end <= '1';
+          data_end_next <= '1';
           
         end if ;
 
       when wait_delete_key =>
         
       when terminate_delete => 
-        vld_firewall_hash <= '0';
-        deletion_done <= '1';
+        vld_firewall_hash_next <= '0';
+        deletion_done_next <= '1';
 
       when others => report "FAILURE" severity failure;
           
@@ -612,36 +687,17 @@ begin
       --report "TEST 1 FAILED" & integer'image(86) severity ERROR;
         
   end process;
-
-  TestInputs : process 
-  begin
-    rdy_FIFO <= '1'; wait for 1390 ns;
+	rdy_fifo <= '1';
+  --TestInputs : process 
+  --begin
+    --rdy_FIFO <= '1'; wait for 1390 ns;
 --    ready_FIFO <= '1'; wait for 10000 ns;
-    rdy_FIFO <= '0'; wait for 10 ns;  
-    rdy_FIFO <= '1'; wait;
+    --rdy_FIFO <= '0'; wait for 10 ns;  
+    --rdy_FIFO <= '1'; wait;
 
-  end process;
+  --end process;
 
-  TEST_OUTPUT : process (test1_fin)
-  begin
-    if full = '1' then
-      report "THE FIFO SHOULD NEVER BE FULL" severity ERROR;
-    end if ;
-
-
-    if test1_fin = '1' then
-        
-
-
-    end if ;
-
-  end process;
-  -- testvld : process 
-  -- begin
-  --   -- vld_firewall <= '1'; wait;
     
-  -- end process;
-
    
     end; 
 -- //                                      ;;.
