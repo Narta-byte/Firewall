@@ -68,7 +68,7 @@ architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
 
     --hash matching signals
     signal exits_matching,previous_search : std_logic := '0';   
-    signal deletion_key, insertion_key : std_logic_vector(95 downto 0):= (others => '0');
+    signal insertion_key : std_logic_vector(95 downto 0):= (others => '0');
 
     component SRAM
         port (
@@ -96,8 +96,8 @@ architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
       signal DEBUG_OK_CNT, DEBUG_KO_CNT : integer:=0;
     
       --crc fun
-      signal g1 : std_logic_vector(8 downto 0) := "100101111";
-      signal g2 : std_logic_vector(8 downto 0) := "101001001";
+      constant g1 : std_logic_vector(8 downto 0) := "100101111";
+      constant g2 : std_logic_vector(8 downto 0) := "101001001";
 
       signal flush_flag_next : std_logic;
       signal delete_flag_next : std_logic;
@@ -117,7 +117,6 @@ architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
       signal exits_matching_next : std_logic;
       signal acc_deny_hash_next : std_logic;
       signal DEBUG_OK_CNT_next, DEBUG_KO_CNT_next : integer;
-      signal deletion_key_next : std_logic_vector (95 downto 0);
       
       
       
@@ -201,7 +200,6 @@ architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
             acc_deny_hash_read <= acc_deny_hash_next;
             DEBUG_KO_CNT <= DEBUG_KO_CNT_next;
             DEBUG_OK_CNT <= DEBUG_OK_CNT_next;
-            deletion_key <= deletion_key_next;
 
         end if ;
     end process;
@@ -310,7 +308,7 @@ architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
                             flush_sram, flip, rdy_firewall_hash_read, insertion_key, MAX,
                             occupied, address, exits_cuckoo, rdy_hash_read, previous_search,
                             vld_ad_hash_read, exits_matching, acc_deny_hash_read,
-                            DEBUG_KO_CNT, DEBUG_OK_CNT, deletion_key, eq_key, g1, g2, data_out, header_data) 
+                            DEBUG_KO_CNT, DEBUG_OK_CNT, eq_key, data_out, header_data, key_in) 
     begin
         flush_flag_next <= flush_flag;
         delete_flag_next <= delete_flag;
@@ -331,7 +329,7 @@ architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
         acc_deny_hash_next <= acc_deny_hash_read;
         DEBUG_KO_CNT_next <= DEBUG_KO_CNT;
         DEBUG_OK_CNT_next <= DEBUG_OK_CNT;
-        deletion_key_next <= deletion_key;
+        
 
         RW <= '0';
         data_in <= (others => '0');
@@ -408,17 +406,14 @@ architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
             
     when rdy_hash_matching =>
         rdy_hash_next <= '1';
-        --matching_key <= header_data;
         previous_search_next <= '0';
         vld_ad_hash_next <= '0';
     when search_hash1 => 
         rdy_hash_next <= '0';
         RW <= '0';
-        --address <=std_logic_vector(to_unsigned(to_integer(unsigned(matching_key)) mod 227,96)(8 downto 0));
         address_next <= '0' & src_hash(header_data,g1);
     when search_hash2 => 
         RW <= '0';
-        --address <= std_logic_vector(to_unsigned((to_integer(unsigned(matching_key))/227 mod 227)+256,96)(8 downto 0)); 
         address_next <= src_hash(header_data,g2)+"100000000";
         previous_search_next <= '1';
 
@@ -444,7 +439,6 @@ architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
                             delete_flag_next <= '0';
                         end if ;
                         rdy_firewall_hash_next <= '1'; 
-                        deletion_key_next <= key_in;
                         previous_search_next <= '0';
                         RW <= '0';
                         occupied_next <= '0';
@@ -453,17 +447,17 @@ architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
                         rdy_firewall_hash_next <= '0';
                         rdy_hash_next <= '0';
                         RW <= '0';
-                        address_next <= '0' & src_hash(deletion_key,g1);
+                        address_next <= '0' & src_hash(key_in,g1);
                     when find_hashfun2 =>
                         RW <= '0';
-                        address_next <= src_hash(deletion_key,g2)+"100000000";
+                        address_next <= src_hash(key_in,g2)+"100000000";
                         previous_search_next <= '1';
                     when match_for_delete =>
-                        if data_out(95 downto 0) = deletion_key then
+                        if data_out(95 downto 0) = key_in then
                             exits_matching_next <= '1';
                             delete_the_key <= '1';
                         else
-                            if previous_search_next = '1' then
+                            if previous_search = '1' then
                                 delete_the_key <= '0';
                             end if ;
                         exits_matching_next <= '0';
