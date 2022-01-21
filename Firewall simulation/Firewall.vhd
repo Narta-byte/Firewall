@@ -10,7 +10,9 @@ use IEEE.std_logic_textio.all;
 --USE altera_mf.all;
 
 entity firewall is
-	port(ADC_CLK_10 : in std_logic;
+	port(
+       ADC_CLK_10 : in std_logic;
+       KEY0 : in std_logic; 
        LEDR : out std_logic_vector(9 downto 0);
        HEX0,HEX1,HEX3,HEX4 : out std_logic_vector(0 to 6)
        );
@@ -592,7 +594,8 @@ begin
         cnt_next <= 0;
         --address_keys_next <= (others => '0') ;
         address_keys_next <= (others => '0') ;
-        address_packet_next <= (others => '0') ;
+        address_packet_next <= (others => '0');
+        address_delete_next <= (others => '0'); 
         --cnt_calc_fin <= 0; --fix senere
       
       when set_keys_and_read_input_packets =>
@@ -746,10 +749,11 @@ begin
   end process;
 
 	rdy_fifo <= '1';
-  LEDR(0) <= ledr0_reg;
-  LEDR(1) <= ledr1_reg;
-  LEDR(2) <= ledr2_reg;
+  LEDR(0) <= test1_fin;
+  LEDR(1) <= test2_fin;
+  LEDR(2) <= test3_fin;
   
+
 	clk <= ADC_CLK_10;
 -- CLOCK : process
 --   begin

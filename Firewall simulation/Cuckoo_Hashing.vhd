@@ -445,7 +445,7 @@ architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
 
                     when find_hashfun1 =>
                         rdy_firewall_hash_next <= '0';
-                        rdy_hash_next <= '0';
+                        --rdy_hash_next <= '0';
                         RW <= '0';
                         address_next <= '0' & src_hash(key_in,g1);
                     when find_hashfun2 =>
