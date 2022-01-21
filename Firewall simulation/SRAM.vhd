@@ -24,11 +24,9 @@ architecture SRAM_arch of SRAM is
   signal WE : WE_type := (others => (others => '0')); 
 
 begin
-  MEMORY : process (clk)
+  MEMORY : process (clk, reset, flush_sram)
   
   begin
-       
-
     if reset = '1' or flush_sram = '1' then
       WE <= (others => (others => '0')); --flush
 

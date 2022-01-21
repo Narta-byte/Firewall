@@ -11,7 +11,8 @@ use IEEE.std_logic_textio.all;
 
 entity firewall is
 	port(ADC_CLK_10 : in std_logic;
-       LEDR : out std_logic_vector(9 downto 0)
+       LEDR : out std_logic_vector(9 downto 0);
+       HEX0,HEX1,HEX3,HEX4 : out std_logic_vector(0 to 6)
        );
 end entity;
 
@@ -76,8 +77,8 @@ component minfifo
           reset : in std_logic; 
 
           data_firewall : out std_logic_vector(9 downto 0);
-          ok_cnt : out std_logic_vector(8 downto 0);
-          ko_cnt : out std_logic_vector(8 downto 0);
+          ok_cnt : out std_logic_vector(7 downto 0);
+          ko_cnt : out std_logic_vector(7 downto 0);
 
           packet_forward_FIFO : in std_logic_vector(9 downto 0); 
           rdy_ad_FIFO : out std_logic; 
@@ -89,12 +90,11 @@ component minfifo
         );
       end component;
   
-  constant clk_period : time := 5 ns;
 
   -- Ports for Collect_header
   signal clk : std_logic := '0';
   signal reset : std_logic := '0';
-  signal packet_in : std_logic_vector (9 downto 0) := "0000000000";
+  signal packet_in : std_logic_vector (9 downto 0) := (others => '0');
   signal SoP : std_logic := '0';
   signal EoP : std_logic := '0';
   signal vld_firewall : std_logic := '0';
@@ -102,7 +102,7 @@ component minfifo
   signal rdy_hash : std_logic := '0';
   signal rdy_collecthdr : std_logic:='0';
   signal header_data : std_logic_vector (95 downto 0);
-  signal packet_forward : std_logic_vector (9 downto 0) := "0000000000";
+  signal packet_forward : std_logic_vector (9 downto 0) := (others => '0');
   signal vld_hdr : std_logic := '0';
   signal vld_hdr_FIFO : std_logic;
   signal hdr_SoP : std_logic := '0';
@@ -114,8 +114,8 @@ component minfifo
   
   signal set_rule : std_logic := '0';
   signal cmd_in : std_logic_vector(1 downto 0) := "00";
-  signal key_in : std_logic_vector(95 downto 0) := x"000000000000000000000000";
-  signal header_in : std_logic_vector(95 downto 0) := x"000000000000000000000000";
+  signal key_in : std_logic_vector(95 downto 0) := (others => '0');
+  signal header_in : std_logic_vector(95 downto 0) := (others => '0');
   --signal vld_hdr : std_logic;
   --signal rdy_hash : std_logic;
   signal vld_firewall_hash : std_logic := '0';
@@ -126,17 +126,17 @@ component minfifo
 
   --fifo
   --signal clk : STD_LOGIC;
-  signal data : STD_LOGIC_VECTOR (9 DOWNTO 0) := "0000000000";
+  signal data : STD_LOGIC_VECTOR (9 DOWNTO 0) := (others => '0');
   signal rdreq : STD_LOGIC := '0';
   signal wrreq : STD_LOGIC := '0';
   signal empty : STD_LOGIC := '0';
   signal full : STD_LOGIC := '0';
-  signal q : STD_LOGIC_VECTOR (9 DOWNTO 0) := "0000000000";
+  signal q : STD_LOGIC_VECTOR (9 DOWNTO 0) := (others => '0');
   signal usedw : STD_LOGIC_VECTOR (7 DOWNTO 0); -- 8?
 
 
   -- Accept deny
-  signal packet_forward_FIFO : std_logic_vector(9 downto 0) := "0000000000";
+  signal packet_forward_FIFO : std_logic_vector(9 downto 0) := (others => '0');
   signal FIFO_sop : std_logic; --
   signal FIFO_eop : std_logic; --
   signal vld_fifo : std_logic;
@@ -144,9 +144,9 @@ component minfifo
   --signal vld_ad_hash : std_logic; 
   --signal rdy_ad_hash : std_logic;
   signal rdy_ad_FIFO : std_logic;
-  signal data_firewall : std_logic_vector(9 downto 0) := "0000000000";
-  signal ok_cnt : std_logic_vector(8 downto 0) := "000000000";
-  signal ko_cnt : std_logic_vector(8 downto 0) := "000000000";
+  signal data_firewall : std_logic_vector(9 downto 0) := (others => '0');
+  signal ok_cnt : std_logic_vector(7 downto 0) := (others => '0');
+  signal ko_cnt : std_logic_vector(7 downto 0) := (others => '0');
 
   --test signals
   signal test1_fin,test2_fin,test3_fin : std_logic := '0';
@@ -161,6 +161,11 @@ component minfifo
   signal key_in_next : std_logic_vector(95 downto 0);
   signal test1_fin_next, test2_fin_next, test3_fin_next : std_logic;
   signal deletion_done_next : std_logic;
+  signal ledr0_next, ledr1_next, ledr2_next : std_logic;
+  signal ledr0_reg, ledr1_reg, ledr2_reg : std_logic:='0';
+  signal nextbytenum : integer := 0;
+  
+
 
     -- cuckoo hash tb copy paste
   type State_type is (  
@@ -204,13 +209,13 @@ component minfifo
   --output logic signals 
   signal cnt : integer;
   type key_array is array (0 to data_length_keys) of std_logic_vector(95 downto 0);
-  signal key_array_sig : key_array;
+  signal key_array_sig : key_array:=(others => (others => '0') ) ;
 
   type packet_array is array (0 to data_length_packet) of std_logic_vector(9 downto 0);
-  signal packet_array_sig : packet_array;
+  signal packet_array_sig : packet_array:=(others => (others => '0') ) ;
     
   type delete_array is array (0 to data_length_delete) of std_logic_vector(95 downto 0);
-  signal delete_array_sig : delete_array;
+  signal delete_array_sig : delete_array:=(others => (others => '0') ) ;
 
   --signals in hashmatching
   signal byte_stream_done : std_logic := '0'; 
@@ -228,20 +233,12 @@ component minfifo
   signal packet_data : std_logic_vector(7 downto 0);
 
   signal bytenumber : integer := 0;
-  signal nextbytenum : integer := 0;
   
   --test 3
   signal deletion_done : std_logic := '0';
   
 begin
-  --clk <= ADC_CLK_10;
-  CLOCK : process 
-  begin
-      clk <= '1';
-      wait for 10 ns;
-      clk <= '0';
-      wait for 10 ns;
-  end process;
+  
 
 
   Collect_Header_inst : Collect_Header
@@ -351,7 +348,9 @@ begin
             test2_fin <= test2_fin_next;
             test3_fin <= test3_fin_next;
             deletion_done <= deletion_done_next;
-
+            LEDR0_reg <= ledr0_next;
+            LEDR0_reg <= ledr1_next;
+            LEDR0_reg <= ledr2_next;
             if bytenumber = data_length_packet then
               bytenumber <= 0;
               --nextbytenum <= 0;
@@ -494,7 +493,10 @@ begin
                           delete_array_sig,
                           nextbytenum,
                           ok_cnt,
-                          ko_cnt)
+                          ko_cnt,
+                          ledr0_reg,
+                          ledr1_reg,
+                          ledr2_reg)
 
   file input : TEXT open READ_MODE is "keys_to_be_programmed 2.txt";
   variable current_read_line_keys : line;
@@ -533,7 +535,10 @@ begin
     test2_fin_next <= test2_fin;
     test3_fin_next <= test3_fin;
     deletion_done_next <= deletion_done;
-    
+    ledr0_next <= LEDR0_reg; 
+    ledr1_next <= LEDR1_reg;
+    ledr2_next <= LEDR2_reg;
+
       case current_state is
       when setup_rulesearch => 
         set_rule_next <= '1';
@@ -632,7 +637,7 @@ begin
       
       if ok_cnt = "00000011" and ko_cnt = "1010110" and test1_fin = '0'  then
         report "TEST 1 PASSED" severity NOTE;
-        LEDR(0) <= '1';
+        LEDR0_next <= '1';
       elsif test1_fin = '0' then
         report "TEST 1 FAILED ok = " & integer'image(to_integer(unsigned(ok_cnt))) & " ko = " & integer'image(to_integer(unsigned(ko_cnt))) severity ERROR;
         
@@ -640,14 +645,14 @@ begin
 
       if ok_cnt = "00000011" and ko_cnt = "1010110" and test2_fin = '0' and test1_fin = '1'  then
         report "TEST 2 PASSED" severity NOTE;
-        LEDR(1) <= '1';
+        LEDR1_next <= '1';
       elsif  test2_fin = '0' and test1_fin = '1' then
         report "TEST 2 FAILED ok = " & integer'image(to_integer(unsigned(ok_cnt))) & " ko = " & integer'image(to_integer(unsigned(ko_cnt))) severity ERROR;
       end if ;
 
       if ok_cnt = "00001011" and ko_cnt = "10100111" and test3_fin = '0' and test2_fin = '1' and test1_fin = '1'  then
         report "TEST 3 PASSED" severity NOTE;
-        LEDR(2) <= '1';
+        LEDR2_next <= '1';
       elsif  test2_fin = '1' and test1_fin = '1' and test3_fin = '0' then
         report "TEST 3 FAILED ok = " & integer'image(to_integer(unsigned(ok_cnt))) & " ko = " & integer'image(to_integer(unsigned(ko_cnt))) severity ERROR;
       end if ;
@@ -687,18 +692,114 @@ begin
       --report "TEST 1 FAILED" & integer'image(86) severity ERROR;
         
   end process;
+
 	rdy_fifo <= '1';
-  --TestInputs : process 
-  --begin
-    --rdy_FIFO <= '1'; wait for 1390 ns;
---    ready_FIFO <= '1'; wait for 10000 ns;
-    --rdy_FIFO <= '0'; wait for 10 ns;  
-    --rdy_FIFO <= '1'; wait;
-
-  --end process;
-
+  LEDR(0) <= ledr0_reg;
+  LEDR(1) <= ledr1_reg;
+  LEDR(2) <= ledr2_reg;
+  
+	clk <= ADC_CLK_10;
+-- CLOCK : process
+--   begin
+--     clk <= '1';
+--     wait for 10 ns;
+--     clk <= '0';
+--     wait for 10 ns;
+	
+--  end process;
+  
+  with (ok_cnt(3 downto 0)) select
+  HEX0 <=
+    "0000001" when "0000",
+    "1001111" when "0001",
+    "0010010" when "0010",
+    "0000110" when "0011",
+    "1001100" when "0100",
+    "0100100" when "0101",
+    "0100000" when "0110",
+    "0001111" when "0111",
+    "0000000" when "1000",
+    "0000100" when "1001",
+    "0001000" when "1010",
+    "1100000" when "1011",
+    "1110010" when "1100",
+    "1000010" when "1101",
+    "0110000" when "1110",
+    "0111000" when "1111";
+  
+  with (ok_cnt(7 downto 4)) select
+  HEX1 <=
+    "0000001" when "0000",
+    "1001111" when "0001",
+    "0010010" when "0010",
+    "0000110" when "0011",
+    "1001100" when "0100",
+    "0100100" when "0101",
+    "0100000" when "0110",
+    "0001111" when "0111",
+    "0000000" when "1000",
+    "0000100" when "1001",
+    "0001000" when "1010",
+    "1100000" when "1011",
+    "1110010" when "1100",
+    "1000010" when "1101",
+    "0110000" when "1110",
+    "0111000" when "1111";
     
+  with (ko_cnt(3 downto 0)) select
+  HEX3 <=
+    "0000001" when "0000",
+    "1001111" when "0001",
+    "0010010" when "0010",
+    "0000110" when "0011",
+    "1001100" when "0100",
+    "0100100" when "0101",
+    "0100000" when "0110",
+    "0001111" when "0111",
+    "0000000" when "1000",
+    "0000100" when "1001",
+    "0001000" when "1010",
+    "1100000" when "1011",
+    "1110010" when "1100",
+    "1000010" when "1101",
+    "0110000" when "1110",
+    "0111000" when "1111";
+  
+  with (ko_cnt(7 downto 4)) select
+  HEX4 <=
+    "0000001" when "0000",
+    "1001111" when "0001",
+    "0010010" when "0010",
+    "0000110" when "0011",
+    "1001100" when "0100",
+    "0100100" when "0101",
+    "0100000" when "0110",
+    "0001111" when "0111",
+    "0000000" when "1000",
+    "0000100" when "1001",
+    "0001000" when "1010",
+    "1100000" when "1011",
+    "1110010" when "1100",
+    "1000010" when "1101",
+    "0110000" when "1110",
+    "0111000" when "1111";
    
+
+   HARDWARE_OUTPUT : process (clk,reset)
+   begin
+    if reset = '1' then
+
+    elsif rising_edge(clk) then
+       if data_firewall /= "0000000000" then
+         LEDR(9) <= '1';
+        else
+          LEDR(9) <='0';
+       end if ;
+     end if;
+   end process;
+
+
+
     end; 
 -- //                                      ;;.
 -- //                                     ,t;i,                 ,;;;:

@@ -60,7 +60,7 @@ architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
 
     signal current_state, next_state : State_type;
     
-    signal exits_cuckoo,insert_flag,hashfun,flip,flush_flag,eq_key,delete_flag,delete_the_key : std_logic := '0';
+    signal exits_cuckoo,insert_flag,hashfun,flip,flush_flag,eq_key,delete_flag : std_logic := '0';
     signal MAX : integer:= 0;
     
     --CONSTANTS
@@ -200,6 +200,7 @@ architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
             acc_deny_hash_read <= acc_deny_hash_next;
             DEBUG_KO_CNT <= DEBUG_KO_CNT_next;
             DEBUG_OK_CNT <= DEBUG_OK_CNT_next;
+            exits_cuckoo <= exits_cuckoo_next;
 
         end if ;
     end process;
@@ -373,12 +374,10 @@ architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
             
     when lookup_hash1 =>
         rdy_firewall_hash_next <= '0';
-        hashfun <= '0';
         RW <= '0';
         --address <=std_logic_vector(to_unsigned(to_integer(unsigned(insertion_key)) mod 227,96)(8 downto 0));
         address_next <= '0' & src_hash(insertion_key,g1);
     when lookup_hash2 =>
-        hashfun <= '1';
         RW <= '0';
         --address <= std_logic_vector(to_unsigned((to_integer(unsigned(insertion_key)) mod 211)+256,96)(8 downto 0)); 
         address_next <= src_hash(insertion_key,g2)+"100000000";
@@ -455,10 +454,8 @@ architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
                     when match_for_delete =>
                         if data_out(95 downto 0) = key_in then
                             exits_matching_next <= '1';
-                            delete_the_key <= '1';
                         else
                             if previous_search = '1' then
-                                delete_the_key <= '0';
                             end if ;
                         exits_matching_next <= '0';
                     end if;
