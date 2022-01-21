@@ -101,6 +101,14 @@ component input_packet_rom
       address : in std_logic_vector(12 downto 0);
       data_out : out std_logic_vector(9 downto 0)
     );
+    
+  end component;
+
+  component delete_keys_rom
+      port (
+      address : in std_logic_vector(2 downto 0);
+      data_out : out std_logic_vector(95 downto 0)
+    );
   end component;
   -- Ports for Collect_header
   signal clk : std_logic := '0';
@@ -177,6 +185,7 @@ component input_packet_rom
   signal nextbytenum : integer := 0;
   signal address_keys_next : std_logic_vector(6 downto 0);
   signal address_packet_next : std_logic_vector(12 downto 0);
+  signal address_delete_next : std_logic_vector(2 downto 0);
   
 
 
@@ -257,9 +266,11 @@ component input_packet_rom
   signal address_packet : std_logic_vector(12 downto 0):= (others => '0') ;
   signal data_out_packet : std_logic_vector(9 downto 0);
 
+  signal address_delete : std_logic_vector(2 downto 0):= (others => '0');
+  signal data_out_delete : std_logic_vector(95 downto 0);
 
 begin
-  
+
   Collect_Header_inst : Collect_Header
   port map (
     clk => clk,
@@ -346,6 +357,11 @@ begin
       address => address_packet,
       data_out => data_out_packet
     );
+    delete_keys_rom_inst : delete_keys_rom
+    port map (
+      address => address_delete,
+      data_out => data_out_delete
+    );
 
 
     STATE_MEMORY_LOGIC : process (clk, reset)
@@ -371,6 +387,7 @@ begin
             LEDR0_reg <= ledr2_next;
             address_keys <= address_keys_next;
             address_packet <= address_packet_next;
+            address_delete <= address_delete_next;
             if bytenumber = data_length_packet then
               bytenumber <= 0;
               --nextbytenum <= 0;
@@ -508,8 +525,10 @@ begin
                           deletion_done,
                           data_out_keys,
                           data_out_packet,
+                          data_out_delete,
                           address_keys,
                           address_packet,
+                          address_delete,
                           packet_array_sig,
                           delete_array_sig,
                           --nextbytenum,
@@ -561,6 +580,7 @@ begin
     ledr2_next <= LEDR2_reg;
     address_keys_next <= address_keys;
     address_packet_next <= address_packet;
+    address_delete_next <= address_delete;
 
       case current_state is
       when setup_rulesearch => 
@@ -596,13 +616,13 @@ begin
           --   end if;
           -- end loop ; -- READ_INPUT_PACKET
 
-          READ_DELETE_KEYS : for i in 0 to data_length_delete loop
-            if not ENDFILE(input_delete_keys) then
-              readline(input_delete_keys, current_read_line_delete_keys);
-              READ(current_read_line_delete_keys, delete_reader);
-              delete_array_sig(i) <= delete_reader;
-            end if;
-          end loop ; -- READ_DELETE_KEYS
+          -- READ_DELETE_KEYS : for i in 0 to data_length_delete loop
+          --   if not ENDFILE(input_delete_keys) then
+          --     readline(input_delete_keys, current_read_line_delete_keys);
+          --     READ(current_read_line_delete_keys, delete_reader);
+          --     delete_array_sig(i) <= delete_reader;
+          --   end if;
+          -- end loop ; -- READ_DELETE_KEYS
 
 
         done_looping <= '1';
@@ -702,9 +722,12 @@ begin
         vld_firewall_hash_next <= '1';
 
       when delete_key => 
-        key_in_next <= delete_array_sig(cnt);
-        cnt_next <= cnt +1;
-        if cnt = data_length_delete then
+        --key_in_next <= delete_array_sig(cnt);
+        --cnt_next <= cnt +1;
+        key_in_next <= data_out_delete;
+        address_delete_next <= address_delete +1;
+
+        if address_delete = data_length_delete then
           data_end_next <= '1';
           
         end if ;
@@ -727,91 +750,91 @@ begin
   LEDR(1) <= ledr1_reg;
   LEDR(2) <= ledr2_reg;
   
-	-- clk <= ADC_CLK_10;
-CLOCK : process
-  begin
-    clk <= '1';
-    wait for 10 ns;
-    clk <= '0';
-    wait for 10 ns;
+	clk <= ADC_CLK_10;
+-- CLOCK : process
+--   begin
+--     clk <= '1';
+--     wait for 10 ns;
+--     clk <= '0';
+--     wait for 10 ns;
 	
- end process;
+--  end process;
   
-  -- with (ok_cnt(3 downto 0)) select
-  -- HEX0 <=
-  --   "0000001" when "0000",
-  --   "1001111" when "0001",
-  --   "0010010" when "0010",
-  --   "0000110" when "0011",
-  --   "1001100" when "0100",
-  --   "0100100" when "0101",
-  --   "0100000" when "0110",
-  --   "0001111" when "0111",
-  --   "0000000" when "1000",
-  --   "0000100" when "1001",
-  --   "0001000" when "1010",
-  --   "1100000" when "1011",
-  --   "1110010" when "1100",
-  --   "1000010" when "1101",
-  --   "0110000" when "1110",
-  --   "0111000" when "1111";
+  with (ok_cnt(3 downto 0)) select
+  HEX0 <=
+    "0000001" when "0000",
+    "1001111" when "0001",
+    "0010010" when "0010",
+    "0000110" when "0011",
+    "1001100" when "0100",
+    "0100100" when "0101",
+    "0100000" when "0110",
+    "0001111" when "0111",
+    "0000000" when "1000",
+    "0000100" when "1001",
+    "0001000" when "1010",
+    "1100000" when "1011",
+    "1110010" when "1100",
+    "1000010" when "1101",
+    "0110000" when "1110",
+    "0111000" when "1111";
   
-  -- with (ok_cnt(7 downto 4)) select
-  -- HEX1 <=
-  --   "0000001" when "0000",
-  --   "1001111" when "0001",
-  --   "0010010" when "0010",
-  --   "0000110" when "0011",
-  --   "1001100" when "0100",
-  --   "0100100" when "0101",
-  --   "0100000" when "0110",
-  --   "0001111" when "0111",
-  --   "0000000" when "1000",
-  --   "0000100" when "1001",
-  --   "0001000" when "1010",
-  --   "1100000" when "1011",
-  --   "1110010" when "1100",
-  --   "1000010" when "1101",
-  --   "0110000" when "1110",
-  --   "0111000" when "1111";
+  with (ok_cnt(7 downto 4)) select
+  HEX1 <=
+    "0000001" when "0000",
+    "1001111" when "0001",
+    "0010010" when "0010",
+    "0000110" when "0011",
+    "1001100" when "0100",
+    "0100100" when "0101",
+    "0100000" when "0110",
+    "0001111" when "0111",
+    "0000000" when "1000",
+    "0000100" when "1001",
+    "0001000" when "1010",
+    "1100000" when "1011",
+    "1110010" when "1100",
+    "1000010" when "1101",
+    "0110000" when "1110",
+    "0111000" when "1111";
     
-  -- with (ko_cnt(3 downto 0)) select
-  -- HEX3 <=
-  --   "0000001" when "0000",
-  --   "1001111" when "0001",
-  --   "0010010" when "0010",
-  --   "0000110" when "0011",
-  --   "1001100" when "0100",
-  --   "0100100" when "0101",
-  --   "0100000" when "0110",
-  --   "0001111" when "0111",
-  --   "0000000" when "1000",
-  --   "0000100" when "1001",
-  --   "0001000" when "1010",
-  --   "1100000" when "1011",
-  --   "1110010" when "1100",
-  --   "1000010" when "1101",
-  --   "0110000" when "1110",
-  --   "0111000" when "1111";
+  with (ko_cnt(3 downto 0)) select
+  HEX3 <=
+    "0000001" when "0000",
+    "1001111" when "0001",
+    "0010010" when "0010",
+    "0000110" when "0011",
+    "1001100" when "0100",
+    "0100100" when "0101",
+    "0100000" when "0110",
+    "0001111" when "0111",
+    "0000000" when "1000",
+    "0000100" when "1001",
+    "0001000" when "1010",
+    "1100000" when "1011",
+    "1110010" when "1100",
+    "1000010" when "1101",
+    "0110000" when "1110",
+    "0111000" when "1111";
   
-  -- with (ko_cnt(7 downto 4)) select
-  -- HEX4 <=
-  --   "0000001" when "0000",
-  --   "1001111" when "0001",
-  --   "0010010" when "0010",
-  --   "0000110" when "0011",
-  --   "1001100" when "0100",
-  --   "0100100" when "0101",
-  --   "0100000" when "0110",
-  --   "0001111" when "0111",
-  --   "0000000" when "1000",
-  --   "0000100" when "1001",
-  --   "0001000" when "1010",
-  --   "1100000" when "1011",
-  --   "1110010" when "1100",
-  --   "1000010" when "1101",
-  --   "0110000" when "1110",
-  --   "0111000" when "1111";
+  with (ko_cnt(7 downto 4)) select
+  HEX4 <=
+    "0000001" when "0000",
+    "1001111" when "0001",
+    "0010010" when "0010",
+    "0000110" when "0011",
+    "1001100" when "0100",
+    "0100100" when "0101",
+    "0100000" when "0110",
+    "0001111" when "0111",
+    "0000000" when "1000",
+    "0000100" when "1001",
+    "0001000" when "1010",
+    "1100000" when "1011",
+    "1110010" when "1100",
+    "1000010" when "1101",
+    "0110000" when "1110",
+    "0111000" when "1111";
    
 
    HARDWARE_OUTPUT : process (clk,reset)
