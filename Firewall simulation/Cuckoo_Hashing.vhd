@@ -338,6 +338,7 @@ architecture Cuckoo_Hashing_tb of Cuckoo_Hashing is
         case(current_state) is
         when command_state =>
         --reset all nextstate signals
+        --rdy_firewall_hash <= '0';
         flush_sram_next <= '0';
         insert_flag_next <= '0';
 

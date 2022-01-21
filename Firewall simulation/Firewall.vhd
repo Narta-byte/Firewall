@@ -89,8 +89,19 @@ component minfifo
           rdy_ad_hash : out std_logic    
         );
       end component;
-  
 
+  component prog_keys_rom
+      port (
+      address : in std_logic_vector(6 downto 0);
+      data_out : out std_logic_vector(95 downto 0)
+    );
+  end component;
+component input_packet_rom
+      port (
+      address : in std_logic_vector(12 downto 0);
+      data_out : out std_logic_vector(9 downto 0)
+    );
+  end component;
   -- Ports for Collect_header
   signal clk : std_logic := '0';
   signal reset : std_logic := '0';
@@ -164,6 +175,8 @@ component minfifo
   signal ledr0_next, ledr1_next, ledr2_next : std_logic;
   signal ledr0_reg, ledr1_reg, ledr2_reg : std_logic:='0';
   signal nextbytenum : integer := 0;
+  signal address_keys_next : std_logic_vector(6 downto 0);
+  signal address_packet_next : std_logic_vector(12 downto 0);
   
 
 
@@ -237,10 +250,16 @@ component minfifo
   --test 3
   signal deletion_done : std_logic := '0';
   
+  -- ROMS
+  signal address_keys : std_logic_vector(6 downto 0):=(others => '0') ;
+  signal data_out_keys : std_logic_vector(95 downto 0);
+
+  signal address_packet : std_logic_vector(12 downto 0):= (others => '0') ;
+  signal data_out_packet : std_logic_vector(9 downto 0);
+
+
 begin
   
-
-
   Collect_Header_inst : Collect_Header
   port map (
     clk => clk,
@@ -317,24 +336,23 @@ begin
           rdy_ad_hash => rdy_ad_hash
         );
     
+  prog_keys_rom_inst : prog_keys_rom
+    port map (
+      address => address_keys,
+      data_out => data_out_keys
+    );
+  input_packet_rom_inst : input_packet_rom
+    port map (
+      address => address_packet,
+      data_out => data_out_packet
+    );
+
 
     STATE_MEMORY_LOGIC : process (clk, reset)
     begin
         if reset = '1' then
             current_state <= setup_rulesearch;
-            -- cnt_calc_fin <= 0; 
-            -- set_rule <= '0';
-            -- cnt <= 0;
-            -- data_end <= '0';
-            -- cmd_in <= "11";
-            -- vld_firewall_hash <= '0';
-            -- key_in <= (others => '0');
-            -- test1_fin <= '0';
-            -- test2_fin <= '0';
-            -- test3_fin <= '0';
-            -- deletion_done <= '0';
-            -- bytenumber <= 0;
-
+            
         elsif rising_edge(clk) then
             current_state <= next_state;
             cnt_calc_fin <= cnt_calc_fin_next; 
@@ -351,6 +369,8 @@ begin
             LEDR0_reg <= ledr0_next;
             LEDR0_reg <= ledr1_next;
             LEDR0_reg <= ledr2_next;
+            address_keys <= address_keys_next;
+            address_packet <= address_packet_next;
             if bytenumber = data_length_packet then
               bytenumber <= 0;
               --nextbytenum <= 0;
@@ -370,8 +390,6 @@ begin
                               vld_hdr, cnt_calc_fin,
                               rdy_ad_hash,
                               byte_stream_done,
-                                
-                              
                               deletion_done,
                               rdy_fifo,
                               vld_firewall,
@@ -385,7 +403,7 @@ begin
         when setup_rulesearch =>
           next_state <= set_keys_and_read_input_packets;
           cnt_calc_fin_next <= 0;
-        when set_keys_and_read_input_packets => if done_looping = '1' then
+        when set_keys_and_read_input_packets => if done_looping = '1' and rdy_firewall_hash = '1' then
           next_state <= wait_for_ready_insert;
         end if ;
 
@@ -488,10 +506,13 @@ begin
                           test2_fin,
                           test3_fin,
                           deletion_done,
-                          key_array_sig,
+                          data_out_keys,
+                          data_out_packet,
+                          address_keys,
+                          address_packet,
                           packet_array_sig,
                           delete_array_sig,
-                          nextbytenum,
+                          --nextbytenum,
                           ok_cnt,
                           ko_cnt,
                           ledr0_reg,
@@ -538,6 +559,8 @@ begin
     ledr0_next <= LEDR0_reg; 
     ledr1_next <= LEDR1_reg;
     ledr2_next <= LEDR2_reg;
+    address_keys_next <= address_keys;
+    address_packet_next <= address_packet;
 
       case current_state is
       when setup_rulesearch => 
@@ -547,33 +570,32 @@ begin
         byte_stream_done <= '0';
         data_end_next <= '0';
         cnt_next <= 0;
+        --address_keys_next <= (others => '0') ;
+        address_keys_next <= (others => '0') ;
+        address_packet_next <= (others => '0') ;
         --cnt_calc_fin <= 0; --fix senere
       
       when set_keys_and_read_input_packets =>
        
-          READ_ARRAY : for i in 0 to data_length_keys loop
-            if not ENDFILE(input) then
-              readline(input, current_read_line_keys);
-              READ(current_read_line_keys, std_logic_vector_reader);
-              key_array_sig(i) <= std_logic_vector_reader;
-              end if ; 
-           
-          end loop ; -- READ_ARRAY 
+          -- READ_ARRAY : for i in 0 to data_length_keys loop
+          --   if not ENDFILE(input) then
+          --     readline(input, current_read_line_keys);
+          --     READ(current_read_line_keys, std_logic_vector_reader);
+          --     key_array_sig(i) <= std_logic_vector_reader;
+          --     end if ; 
+          -- end loop ; -- READ_ARRAY 
 
-          READ_INPUT_PACKET : for i in 0 to data_length_packet loop
-            if not ENDFILE(input_packet) then
-              readline(input_packet, current_read_line);
-              hread(current_read_line, current_read_field);
-              read(current_read_line, current_bit_read_SoP);
-              read(current_read_line, current_bit_read_EoP);
-              packet_array_sig(i) <= current_read_field & current_bit_read_SoP & current_bit_read_EoP;
-              packet_data <= hex12;
-                    
-           
-            end if;
+          -- READ_INPUT_PACKET : for i in 0 to data_length_packet loop
+          --   if not ENDFILE(input_packet) then
+          --     readline(input_packet, current_read_line);
+          --     hread(current_read_line, current_read_field);
+          --     read(current_read_line, current_bit_read_SoP);
+          --     read(current_read_line, current_bit_read_EoP);
+          --     packet_array_sig(i) <= current_read_field & current_bit_read_SoP & current_bit_read_EoP;
+          --     packet_data <= hex12;
+          --   end if;
+          -- end loop ; -- READ_INPUT_PACKET
 
-            
-          end loop ; -- READ_INPUT_PACKET
           READ_DELETE_KEYS : for i in 0 to data_length_delete loop
             if not ENDFILE(input_delete_keys) then
               readline(input_delete_keys, current_read_line_delete_keys);
@@ -583,7 +605,6 @@ begin
           end loop ; -- READ_DELETE_KEYS
 
 
-
         done_looping <= '1';
         cmd_in_next <= "01";
         vld_firewall_hash_next <= '1';
@@ -591,10 +612,14 @@ begin
       when wait_for_ready_insert => 
             
       when send_key =>
-          key_in_next <= key_array_sig(cnt);
-          cnt_next <= cnt+1;
 
-          if cnt = data_length_keys then
+          --key_in_next <= key_array_sig(cnt);
+          --cnt_next <= cnt+1;
+
+          key_in_next <= data_out_keys;
+          address_keys_next <= address_keys +1;
+
+          if address_keys = data_length_keys then
             data_end_next <= '1';
             
           end if ;
@@ -617,9 +642,13 @@ begin
 
       when comince_byte_stream => --packet_input 
       set_rule_next <= '0';
-      nextbytenum <= bytenumber +1;
-      packet_in <= packet_array_sig(nextbytenum);
-        if bytenumber = data_length_packet-1 then
+      --nextbytenum <= bytenumber +1;
+      --packet_in <= packet_array_sig(nextbytenum);
+      
+      packet_in <= data_out_packet;
+      address_packet_next <= address_packet +1; 
+
+        if address_packet = data_length_packet then
           byte_stream_done <= '1';
         end if ;
       
@@ -698,97 +727,97 @@ begin
   LEDR(1) <= ledr1_reg;
   LEDR(2) <= ledr2_reg;
   
-	clk <= ADC_CLK_10;
--- CLOCK : process
---   begin
---     clk <= '1';
---     wait for 10 ns;
---     clk <= '0';
---     wait for 10 ns;
+	-- clk <= ADC_CLK_10;
+CLOCK : process
+  begin
+    clk <= '1';
+    wait for 10 ns;
+    clk <= '0';
+    wait for 10 ns;
 	
---  end process;
+ end process;
   
-  with (ok_cnt(3 downto 0)) select
-  HEX0 <=
-    "0000001" when "0000",
-    "1001111" when "0001",
-    "0010010" when "0010",
-    "0000110" when "0011",
-    "1001100" when "0100",
-    "0100100" when "0101",
-    "0100000" when "0110",
-    "0001111" when "0111",
-    "0000000" when "1000",
-    "0000100" when "1001",
-    "0001000" when "1010",
-    "1100000" when "1011",
-    "1110010" when "1100",
-    "1000010" when "1101",
-    "0110000" when "1110",
-    "0111000" when "1111";
+  -- with (ok_cnt(3 downto 0)) select
+  -- HEX0 <=
+  --   "0000001" when "0000",
+  --   "1001111" when "0001",
+  --   "0010010" when "0010",
+  --   "0000110" when "0011",
+  --   "1001100" when "0100",
+  --   "0100100" when "0101",
+  --   "0100000" when "0110",
+  --   "0001111" when "0111",
+  --   "0000000" when "1000",
+  --   "0000100" when "1001",
+  --   "0001000" when "1010",
+  --   "1100000" when "1011",
+  --   "1110010" when "1100",
+  --   "1000010" when "1101",
+  --   "0110000" when "1110",
+  --   "0111000" when "1111";
   
-  with (ok_cnt(7 downto 4)) select
-  HEX1 <=
-    "0000001" when "0000",
-    "1001111" when "0001",
-    "0010010" when "0010",
-    "0000110" when "0011",
-    "1001100" when "0100",
-    "0100100" when "0101",
-    "0100000" when "0110",
-    "0001111" when "0111",
-    "0000000" when "1000",
-    "0000100" when "1001",
-    "0001000" when "1010",
-    "1100000" when "1011",
-    "1110010" when "1100",
-    "1000010" when "1101",
-    "0110000" when "1110",
-    "0111000" when "1111";
+  -- with (ok_cnt(7 downto 4)) select
+  -- HEX1 <=
+  --   "0000001" when "0000",
+  --   "1001111" when "0001",
+  --   "0010010" when "0010",
+  --   "0000110" when "0011",
+  --   "1001100" when "0100",
+  --   "0100100" when "0101",
+  --   "0100000" when "0110",
+  --   "0001111" when "0111",
+  --   "0000000" when "1000",
+  --   "0000100" when "1001",
+  --   "0001000" when "1010",
+  --   "1100000" when "1011",
+  --   "1110010" when "1100",
+  --   "1000010" when "1101",
+  --   "0110000" when "1110",
+  --   "0111000" when "1111";
     
-  with (ko_cnt(3 downto 0)) select
-  HEX3 <=
-    "0000001" when "0000",
-    "1001111" when "0001",
-    "0010010" when "0010",
-    "0000110" when "0011",
-    "1001100" when "0100",
-    "0100100" when "0101",
-    "0100000" when "0110",
-    "0001111" when "0111",
-    "0000000" when "1000",
-    "0000100" when "1001",
-    "0001000" when "1010",
-    "1100000" when "1011",
-    "1110010" when "1100",
-    "1000010" when "1101",
-    "0110000" when "1110",
-    "0111000" when "1111";
+  -- with (ko_cnt(3 downto 0)) select
+  -- HEX3 <=
+  --   "0000001" when "0000",
+  --   "1001111" when "0001",
+  --   "0010010" when "0010",
+  --   "0000110" when "0011",
+  --   "1001100" when "0100",
+  --   "0100100" when "0101",
+  --   "0100000" when "0110",
+  --   "0001111" when "0111",
+  --   "0000000" when "1000",
+  --   "0000100" when "1001",
+  --   "0001000" when "1010",
+  --   "1100000" when "1011",
+  --   "1110010" when "1100",
+  --   "1000010" when "1101",
+  --   "0110000" when "1110",
+  --   "0111000" when "1111";
   
-  with (ko_cnt(7 downto 4)) select
-  HEX4 <=
-    "0000001" when "0000",
-    "1001111" when "0001",
-    "0010010" when "0010",
-    "0000110" when "0011",
-    "1001100" when "0100",
-    "0100100" when "0101",
-    "0100000" when "0110",
-    "0001111" when "0111",
-    "0000000" when "1000",
-    "0000100" when "1001",
-    "0001000" when "1010",
-    "1100000" when "1011",
-    "1110010" when "1100",
-    "1000010" when "1101",
-    "0110000" when "1110",
-    "0111000" when "1111";
+  -- with (ko_cnt(7 downto 4)) select
+  -- HEX4 <=
+  --   "0000001" when "0000",
+  --   "1001111" when "0001",
+  --   "0010010" when "0010",
+  --   "0000110" when "0011",
+  --   "1001100" when "0100",
+  --   "0100100" when "0101",
+  --   "0100000" when "0110",
+  --   "0001111" when "0111",
+  --   "0000000" when "1000",
+  --   "0000100" when "1001",
+  --   "0001000" when "1010",
+  --   "1100000" when "1011",
+  --   "1110010" when "1100",
+  --   "1000010" when "1101",
+  --   "0110000" when "1110",
+  --   "0111000" when "1111";
    
 
    HARDWARE_OUTPUT : process (clk,reset)
    begin
     if reset = '1' then
-
+      --packet_in <= (others => '0');
     elsif rising_edge(clk) then
        if data_firewall /= "0000000000" then
          LEDR(9) <= '1';
@@ -917,3 +946,43 @@ begin
 -- //       iftfttt1tttt11i;::,...  ..             1tfftttffftt1iii;:,,..   ..
 -- //     :tLLft111ii;;iii1111111i;;;:           .tCLLf111iiiiii111ttt111i;::
 -- // ::;L0GfLLCCCCCCLt1i;;;;;ittft111;:,,..,::;1G0LfLCCCCLLLft1ii;;;;iii1111;::::::::
+-- //       .,,::,.
+-- //     .:;i;;ii;:.,,::ii::::.
+-- //    ,::::::::;ii;::::,,,:;1t:.
+-- //   .,..,::,,::;i;,:i;, .,:;fCL,
+-- //   ,,,,:::::;;:::;1ff1,:;;;ifGf.
+-- //   :ti;:,::;;i;,:;tft1::;::;1LL.
+-- //    ;i;:..,,:::.,1ffff::ti:,;tf;,
+-- //     ,ii,,,:,,.  ;LLCC1;;,:;tC0GCfi.
+-- //    .,:;,.....  .,1LGCff1.,;i1ffCGGL1,
+-- //    .::.. ...  ...:fLCf1:.,:;;;itffLGCt,
+-- //     it;;,...  ..,:i1fi,.,:::::;i11ttfGCi
+-- //    ;Lt;:;:,,::;:::,,,...,:::,,:::;;ifCLf.
+-- //   .ff1;,::;ii;;:,,,,,.,,,:,,,,,,,,;11tt1.
+-- //  .ittt111i;;:,,,,,,...,,,,,,,.,,,,:::,:i.
+-- // :i;itt11;,,:,,,,,,...,,,,,,:,..,:,,,,,,:.
+-- // ,;i11i;:,,,,,,,,.. .,,::::::,,..,:,,,,,,
+-- //  ,i1;::,,,,,,,.,,...,::,,,,,,,,...,:,,,,
+-- //   .;;::,,,,:........,::,,,,,,,,,...,,,,,
+-- //     ,:::,,.:;,,,....,:,,,,,,,,,,....,,,,
+-- //        .   .1;:,...,,,,,,:::,,,,,...,:,,
+-- //             ..        ,:;;:.         .
+-- //                     .tCGGGCL1,
+-- //                    .ffitCfi1ft.
+-- //                    :GLtfCfiiif:
+-- //                   .fC11;::itLL:
+-- //                  .:ti:i;::,,1ti.
+-- //                ,;i;:.........:,.,,.
+-- //              .;fLf;;i,.   .,,,:,..,,.
+-- //            .:tf1i:.,;;:,,.,,,:t;..,;:
+-- //         ,;1LCf;::,..::::,,.,:i1ii::;i
+-- //       .;fCLfti::,,i;;;:::,,:::::iiii:
+-- //      ,fGLfti:::,.1G0GCLLLL;,,.,:;iiii;,
+-- //     ;CCftLL1i1i:,L0888888f:,,,,i1i;;i11:
+-- //   .1GGfifLfttt1i;f0888880tii;1tfi:::;;ii.
+-- //   tCff1;tffiiiii;t08GC88CfftfLf1::;;:;;;.
+-- // .1GLti;:ifftt111;10LiC88t1ttttffi;;:;;;:
+-- // fCf1i;;:iCttffft;iLCCCCG;;iitLLLti;:iii:
+-- // ft1;;;::1Lftt1i;:1C000GG;;;,:ff1;:iti;;:
+-- // ti::::::1fttti;,:tCG00GC;::::,,,,,;tt1i;
+-- // fi:,,,,iCf111ii:;iCG00GL:::,::,,,:;i1i1i
