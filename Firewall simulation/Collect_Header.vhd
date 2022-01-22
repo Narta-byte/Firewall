@@ -3,7 +3,6 @@ library IEEE;
 library std;
 use IEEE.std_logic_1164.all;
 use IEEE.numeric_std.all;
---use IEEE.numeric_std_unsigned.all;
 use std.textio.all;
 use STD.textio.all;
 use IEEE.std_logic_textio.all; 
@@ -36,10 +35,10 @@ architecture Collect_header_arch of Collect_Header is
   signal current_state, next_state : State_type;
 
   -- signal declarations
-  signal srcaddr : std_logic_vector (31 downto 0) := x"00000000"; --Store source address here
-  signal destaddr : std_logic_vector (31 downto 0) := x"00000000"; --Store destination address her
-  signal srcport : std_logic_vector (15 downto 0) := x"0000"; -- fang source ports her
-  signal destport : std_logic_vector (15 downto 0) := x"0000"; -- fang destsource ports her
+  signal srcaddr : std_logic_vector (31 downto 0) := x"00000000"; 
+  signal destaddr : std_logic_vector (31 downto 0) := x"00000000"; 
+  signal srcport : std_logic_vector (15 downto 0) := x"0000"; 
+  signal destport : std_logic_vector (15 downto 0) := x"0000"; 
   signal header_data_store : std_logic_vector (95 downto 0) := x"000000000000000000000000";
 
   signal srcaddr_next : std_logic_vector(31 downto 0);
@@ -47,12 +46,10 @@ architecture Collect_header_arch of Collect_Header is
   signal srcport_next : std_logic_vector(15 downto 0);
   signal destport_next : std_logic_vector(15 downto 0);
   signal header_data_store_next : std_logic_vector (95 downto 0) := x"000000000000000000000000";
-  
 
+  signal bytenum, bytenum_next : integer range 0 to 100000:= 0;
 
-  signal bytenum : integer := 0;
-
-  constant collect_start: integer := 11; -- var 11
+  constant collect_start: integer range 0 to 11:= 11;
   
   signal store1 : std_logic_vector (7 downto 0) := x"00";
   signal store2 : std_logic_vector (7 downto 0) := x"00";
@@ -64,14 +61,11 @@ architecture Collect_header_arch of Collect_Header is
   signal header_sent_next : std_logic;
 
   signal header_sent : std_logic := '0';
-  signal bytenum_next : integer := 0;
-  signal packetnum : integer := 0;
-  signal packetnum_next : integer := 0;
-  
+  signal packetnum : integer range 0 to 1000000:= 0;
+  signal packetnum_next : integer range 0 to 1000000:= 0;
 
   signal packetSop : std_logic;
   signal packetEop : std_logic;
-
 
   signal vld_hdr_read, vld_hdr_FIFO_read, rdy_collecthdr_read : std_logic;
   signal vld_hdr_next, vld_hdr_FIFO_next, rdy_collecthdr_next : std_logic;
@@ -108,8 +102,6 @@ begin
       vld_hdr_FIFO_read <= vld_hdr_FIFO_next;
       rdy_collecthdr_read <= rdy_collecthdr_next;
 
-
-
     end if;
   end process;
 
@@ -122,8 +114,7 @@ begin
         if rdy_hash = '1' and rdy_FIFO = '1' and SoP = '1' and vld_firewall = '1' then
           next_state <= packet_next;
         end if;
-
-
+        
       when packet_next =>
         if rdy_FIFO = '1' and rdy_hash = '1' and bytenum_next >= collect_start and bytenum_next <= collect_start + 13 and vld_firewall = '1' then
           next_state <= collect_header;
@@ -143,7 +134,6 @@ begin
           next_state <= collect_header;
         elsif rdy_FIFO = '1' and rdy_hash = '1' and bytenum_next >= collect_start +12 and vld_firewall = '1' and header_sent_next = '0' then 
           next_state <= forward_header;
-
         elsif rdy_FIFO = '1' and rdy_hash = '1' and vld_firewall = '1' then
           next_state <= packet_next;
         end if;
@@ -171,14 +161,17 @@ begin
 
       when others =>
         next_state <= wait_for_packetstart;
+        
     end case;
   end process;
 
   OUTPUT_LOGIC : process (current_state, SoP, EoP, bytenum, packetnum, store1, store2, store3,
                           header_sent, srcaddr, destaddr, srcport, destport,header_data_store,
                           packet_in, vld_hdr_read, vld_hdr_FIFO_read, rdy_collecthdr_read)
+    
     file output : TEXT open WRITE_MODE is "headerdata.txt";
     variable current_write_line : line;
+    
   begin
      bytenum_next <= bytenum;
      packetnum_next <= packetnum;
@@ -191,8 +184,6 @@ begin
      store2_next <= store2;
      store3_next <= store3;
      header_data <= header_data_store;
-     --header_data <= x"000000000000000000000000";
-     --vld_hdr <= '0';
      header_sent_next <= header_sent;
      hdr_SoP <= '0';
      hdr_EoP <= '0';
@@ -204,20 +195,14 @@ begin
 
 
     case current_state is
-
       when wait_for_packetstart =>
       bytenum_next <= 0;
       header_sent_next <= '0';
       if SoP = '1' then
         packet_forward <= packet_in;
-        --bytenum_next <= bytenum + 1;
         packetnum_next <= packetnum + 1;
         bytenum_next <= 0;
         header_data_store_next <= x"000000000000000000000000";
-        --header_data <= x"000000000000000000000000";
-        
-        --bytenum_next <= 0;
-
       end if;
         -- Do nothing
 
@@ -227,7 +212,6 @@ begin
         header_data <= header_data_store;
         header_sent_next <= '1';
         packet_forward <= packet_in;
-        --rdy_collecthdr <= '0';
 
         write(current_write_line, header_data_store);
         writeline(output, current_write_line);
@@ -235,24 +219,21 @@ begin
       when packet_next =>
         if SoP = '1' then
           header_sent_next <= '0';
-          srcaddr_next <= x"00000000";
-          destaddr_next <= x"00000000";
+          srcaddr_next <= (others => '0');
+          destaddr_next <= (others => '0');
           srcport_next <= x"0000";
           destport_next <= x"0000";
           store1_next <= x"00";
           store2_next <= x"00";
           store3_next <= x"00";
-          header_data <= x"000000000000000000000000";
-          header_data_store_next <= x"000000000000000000000000";
+          header_data <= (others => '0');
+          header_data_store_next <= (others => '0');
           bytenum_next <= 1;
           packetnum_next <= 0;
-
-          if packetnum /= 1 then
-          packetnum_next <= packetnum + 1;
-          --bytenum_next <= 0;            
-          end if;
+        if packetnum /= 1 then
+          packetnum_next <= packetnum + 1;          
         end if;
-        --rdy_collecthdr <= '1';
+        end if;
          if SoP = '1' then
            bytenum_next <= 0;
          else
@@ -265,13 +246,11 @@ begin
         vld_hdr_FIFO_next <= '1';
         rdy_collecthdr_next <= '1';
 
-        --rdy_collecthdr <= '1';
-
       when collect_header =>
         vld_hdr_FIFO_next <= '1';
         bytenum_next <= bytenum + 1;
         packet_forward <= packet_in;
-        --rdy_collecthdr <= '1';
+
 
         if bytenum >= collect_start +1 and bytenum <= collect_start +4 then -- SRCADDR
           if bytenum = collect_start +1 then
@@ -283,7 +262,6 @@ begin
           if bytenum = collect_start +3 then
             store3_next <= packet_in (9 downto 2);
           end if;
-
           srcaddr_next <= store1 & store2 & store3 & packet_in(9 downto 2);
         end if;
 
@@ -297,7 +275,6 @@ begin
           if bytenum = collect_start +7 then
             store3_next <= packet_in(9 downto 2);
           end if;
-
           destaddr_next <= store1 & store2 & store3 & packet_in(9 downto 2);
         end if;
 
@@ -320,7 +297,6 @@ begin
         end if;
 
       when stop_wait =>
-      --rdy_collecthdr <= '0';
         -- Wait for signals to pop up
 
       when others =>
